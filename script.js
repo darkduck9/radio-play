@@ -435,7 +435,7 @@ function updateMediaMetadata() {
 	   const dlLink = document.createElement('a');
 	  dlLink.className = 'playlist_item__dl';
 	  dlLink.target = '_blank'; 
-      let baURL = "https://tool.liumingye.cn/music/#/search/D/song/";
+      let baURL = "https://yym4.com/search/";
       let fiURL = baURL + encodeURIComponent(removeSymbols(data['song'] + ' ' + data['singer']));
 	  dlLink.href = fiURL;
 	  dlLink.style.userSelect = 'none';
@@ -699,7 +699,7 @@ function addLinksToSongInfo(songtext, detailsContainer) {
         },
         {
             class: 'playlist_item__dlo',
-            url: `https://tool.liumingye.cn/music/#/search/D/song/${encodeURIComponent(songtext.replace(/\//g, ''))}`,
+            url: `https://yym4.com/search/${encodeURIComponent(songtext.replace(/\//g, ''))}`,
             icon: './icons/dl.svg',
             alt: 'dl Logo'
         }
@@ -2348,43 +2348,65 @@ document.getElementById("addMore").addEventListener("click", function() {
 	  if (localStorage.getItem("backgroundImage")) {
 		var backgroundImage = localStorage.getItem("backgroundImage");
 		document.body.style.backgroundImage = `url(${backgroundImage})`;
+    document.body.style.backgroundSize = "cover";
+    document.body.style.backgroundPosition = "center";
+    document.body.style.backgroundAttachment = "fixed";
+    document.body.style.backgroundRepeat = "no-repeat";
 	  }
 
 	  if (localStorage.getItem("themeMode") === "dark") {
 		document.body.classList.add("dark");
 	  }
+// 选择在线背景按钮点击事件
+var selectOnlineBgBtn = document.getElementById("select-online-bg-btn");
+selectOnlineBgBtn.addEventListener("click", function() {
+  var bgUrl = prompt("请输入在线背景图URL：");
+  var bgContainer = document.getElementById("background-container");
+  
+  if (bgUrl && bgContainer) {
+    bgContainer.style.backgroundImage = `url(${bgUrl})`;
+    bgContainer.style.backgroundSize = "cover";
+    bgContainer.style.backgroundPosition = "center";
+    bgContainer.style.backgroundAttachment = "fixed";
+    bgContainer.style.backgroundRepeat = "no-repeat";
+    localStorage.setItem("backgroundImage", bgUrl);
+    
+    var blurLevel = localStorage.getItem("blurLevel") || 0;
+    bgContainer.style.filter = `blur(${blurLevel}px)`;
+  }
+});
 
-	  // 选择在线背景按钮点击事件
-	  var selectOnlineBgBtn = document.getElementById("select-online-bg-btn");
-	  selectOnlineBgBtn.addEventListener("click", function() {
-		var bgUrl = prompt("请输入在线背景图URL：");
-		if (bgUrl) {
-		  document.body.style.backgroundImage = `url(${bgUrl})`;
-		  localStorage.setItem("backgroundImage", bgUrl);
-		}
-
-	  });
-
-	  // 选择本地图片按钮点击事件
-	  var selectLocalBgBtn = document.getElementById("select-local-bg-btn");
-	  selectLocalBgBtn.addEventListener("click", function() {
-		var selectBgInput = document.createElement("input");
-		selectBgInput.type = "file";
-		selectBgInput.accept = "image/*";
-		selectBgInput.addEventListener("change", function(event) {
-		  var file = event.target.files[0];
-		  if (file) {
-			var reader = new FileReader();
-			reader.onload = function() {
-			  var bgUrl = reader.result;
-			  document.body.style.backgroundImage = `url(${bgUrl})`;
-			  localStorage.setItem("backgroundImage", bgUrl);
-			};
-			reader.readAsDataURL(file);
-		  }
-		});
-		selectBgInput.click();
-	  });
+var selectLocalBgBtn = document.getElementById("select-local-bg-btn");
+selectLocalBgBtn.addEventListener("click", function() {
+  var selectBgInput = document.createElement("input");
+  selectBgInput.type = "file";
+  selectBgInput.accept = "image/*";
+  selectBgInput.addEventListener("change", function(event) {
+    var file = event.target.files[0];
+    if (file) {
+      var reader = new FileReader();
+      reader.onload = function() {
+        var bgUrl = reader.result;
+        var bgContainer = document.getElementById("background-container");
+        
+        if (bgContainer) {
+          bgContainer.style.backgroundImage = `url(${bgUrl})`;
+          bgContainer.style.backgroundSize = "cover";
+          bgContainer.style.backgroundPosition = "center";
+          bgContainer.style.backgroundAttachment = "fixed";
+          bgContainer.style.backgroundRepeat = "no-repeat";
+          
+          var blurLevel = localStorage.getItem("blurLevel") || 0;
+          bgContainer.style.filter = `blur(${blurLevel}px)`;
+          
+          localStorage.setItem("backgroundImage", bgUrl);
+        }
+      };
+      reader.readAsDataURL(file);
+    }
+  });
+  selectBgInput.click();
+});
 
 	  var clearBgBtn = document.getElementById("clear-bg-btn");
 	  clearBgBtn.addEventListener("click", function() {
@@ -2406,27 +2428,32 @@ document.getElementById("addMore").addEventListener("click", function() {
 		  });
 	var blurSlider = document.getElementById("blur-slider");
 
-	// 检查本地存储是否有背景模糊程度数据
-	if (localStorage.getItem("blurLevel")) {
-	  var storedBlurLevel = localStorage.getItem("blurLevel");
-	  blurSlider.value = storedBlurLevel;
-	  updateBackgroundBlur(storedBlurLevel);
-	}
+// 检查本地存储是否有背景模糊程度数据
+if (localStorage.getItem("blurLevel")) {
+  var storedBlurLevel = localStorage.getItem("blurLevel");
+  blurSlider.value = storedBlurLevel;
+  updateBackgroundBlur(storedBlurLevel);
+}
 
-	blurSlider.addEventListener("input", function() {
-	  var blurLevel = blurSlider.value;
-	  updateBackgroundBlur(blurLevel);
-	  localStorage.setItem("blurLevel", blurLevel);
-	});
+blurSlider.addEventListener("input", function() {
+  var blurLevel = blurSlider.value;
+  updateBackgroundBlur(blurLevel);
+  localStorage.setItem("blurLevel", blurLevel);
+});
 
-	function updateBackgroundBlur(blurLevel) {
-	  var bgUrl = localStorage.getItem("backgroundImage");
-	  if (bgUrl) {
-		document.body.style.backgroundImage = `url(${bgUrl})`;
-		document.body.style.backdropFilter = `blur(${blurLevel}px)`;
-	  }
-	}
-
+function updateBackgroundBlur(blurLevel) {
+  var bgUrl = localStorage.getItem("backgroundImage");
+  var bgContainer = document.getElementById("background-container");
+  
+  if (bgUrl && bgContainer) {
+    bgContainer.style.backgroundImage = `url(${bgUrl})`;
+    bgContainer.style.backgroundSize = "cover";
+    bgContainer.style.backgroundPosition = "center";
+    bgContainer.style.backgroundAttachment = "fixed";
+    bgContainer.style.backgroundRepeat = "no-repeat";
+    bgContainer.style.filter = `blur(${blurLevel}px)`; 
+  }
+}
 	localStorage.removeItem("selectedOptionIndex");
 
 	  var toggleMenuBtn = document.getElementById("toggle-menu-btn");
@@ -2551,21 +2578,7 @@ if (themeMode === 'default') {
 	  const url = "https://www.acfun.cn/u/633603";
 		window.location.href = url;
 	}	 
-			 function goToWebpage3() {
-	  const selectedDate = document.getElementById("datePicker").value;
-	   const url = `https://www.radio.cn/pc-portal/sanji/passProgram.html?channel_name=662&program_name=undefined&date_checked=${selectedDate}`;
-		window.location.href = url;
-	}
-		  function gotoURL() {
-    const input = document.getElementById('searchInput').value;
-    const sanitizedInput = input.replace(/\//g, '');  
-    const chineseRegex = /^[\u4e00-\u9fa5]+$/;
-    const baseURL = chineseRegex.test(sanitizedInput) ?
-        "https://tool.liumingye.cn/music/#/search/B/song/" :
-        "https://tool.liumingye.cn/music/#/search/D/song/";
-    const finalURL = baseURL + encodeURIComponent(sanitizedInput);
-    window.open(finalURL, '_blank');
-}
+
 
 	  const mainColorInput = document.getElementById('main-color');
 	  const savedColor = localStorage.getItem('mainColor');
