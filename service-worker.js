@@ -2,8 +2,8 @@ importScripts('https://cdnjs.cloudflare.com/ajax/libs/workbox-sw/7.0.0/workbox-s
 
 const versions = {
     images: 'v0.53',
-    js: 'v0.70',
-    css: 'v0.59'
+    js: 'v0.71',
+    css: 'v0.60'
 };
 
 if (workbox) {
