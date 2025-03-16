@@ -2344,14 +2344,19 @@ document.getElementById("addMore").addEventListener("click", function() {
 
   document.querySelector(".subcontain0").appendChild(subcontain);
 });
-
+var bgContainer = document.getElementById("background-container");
 	  if (localStorage.getItem("backgroundImage")) {
 		var backgroundImage = localStorage.getItem("backgroundImage");
-		document.body.style.backgroundImage = `url(${backgroundImage})`;
-    document.body.style.backgroundSize = "cover";
-    document.body.style.backgroundPosition = "center";
-    document.body.style.backgroundAttachment = "fixed";
-    document.body.style.backgroundRepeat = "no-repeat";
+    bgContainer.style.backgroundImage = backgroundImage;
+    bgContainer.style.backgroundSize = "cover";
+    bgContainer.style.backgroundPosition = "center";
+    bgContainer.style.backgroundAttachment = "fixed";
+    bgContainer.style.backgroundRepeat = "no-repeat";
+    bgContainer.style.backgroundPosition = bgPosition;
+    localStorage.setItem("backgroundImage", backgroundImage);
+    
+    var blurLevel = localStorage.getItem("blurLevel") || 0;
+    bgContainer.style.filter = `blur(${blurLevel}px)`;
 	  }
 
 	  if (localStorage.getItem("themeMode") === "dark") {
@@ -2361,14 +2366,13 @@ document.getElementById("addMore").addEventListener("click", function() {
 var selectOnlineBgBtn = document.getElementById("select-online-bg-btn");
 selectOnlineBgBtn.addEventListener("click", function() {
   var bgUrl = prompt("请输入在线背景图URL：");
-  var bgContainer = document.getElementById("background-container");
-  
   if (bgUrl && bgContainer) {
     bgContainer.style.backgroundImage = `url(${bgUrl})`;
     bgContainer.style.backgroundSize = "cover";
     bgContainer.style.backgroundPosition = "center";
     bgContainer.style.backgroundAttachment = "fixed";
     bgContainer.style.backgroundRepeat = "no-repeat";
+    bgContainer.style.backgroundPosition = bgPosition;
     localStorage.setItem("backgroundImage", bgUrl);
     
     var blurLevel = localStorage.getItem("blurLevel") || 0;
@@ -2386,21 +2390,17 @@ selectLocalBgBtn.addEventListener("click", function() {
     if (file) {
       var reader = new FileReader();
       reader.onload = function() {
-        var bgUrl = reader.result;
-        var bgContainer = document.getElementById("background-container");
-        
-        if (bgContainer) {
+        var bgUrl = reader.result;        
           bgContainer.style.backgroundImage = `url(${bgUrl})`;
           bgContainer.style.backgroundSize = "cover";
           bgContainer.style.backgroundPosition = "center";
           bgContainer.style.backgroundAttachment = "fixed";
           bgContainer.style.backgroundRepeat = "no-repeat";
-          
+          bgContainer.style.backgroundPosition = bgPosition;
           var blurLevel = localStorage.getItem("blurLevel") || 0;
           bgContainer.style.filter = `blur(${blurLevel}px)`;
           
           localStorage.setItem("backgroundImage", bgUrl);
-        }
       };
       reader.readAsDataURL(file);
     }
@@ -2414,18 +2414,21 @@ selectLocalBgBtn.addEventListener("click", function() {
 		localStorage.removeItem("backgroundImage");
 	  });
 		var bgPositionSelect = document.getElementById("bg-position-select");
-		  if (localStorage.getItem("bgPosition")) {
-			var storedPosition = localStorage.getItem("bgPosition");
-			bgPositionSelect.value = storedPosition;
-			document.body.style.backgroundPosition = storedPosition;
-		  }
+if (localStorage.getItem("bgPosition")) {
+  var storedPosition = localStorage.getItem("bgPosition");
+  bgPositionSelect.value = storedPosition;
+  if (bgContainer) {
+    bgContainer.style.backgroundPosition = storedPosition;
+  }
+}
 
-
-		  bgPositionSelect.addEventListener("change", function() {
-			var selectedPosition = bgPositionSelect.value;
-			document.body.style.backgroundPosition = selectedPosition;
-			localStorage.setItem("bgPosition", selectedPosition);
-		  });
+bgPositionSelect.addEventListener("change", function() { 
+ var selectedPosition = bgPositionSelect.value;
+  if (bgContainer) {
+    bgContainer.style.backgroundPosition = selectedPosition;
+  }
+  localStorage.setItem("bgPosition", selectedPosition);
+});
 	var blurSlider = document.getElementById("blur-slider");
 
 // 检查本地存储是否有背景模糊程度数据
@@ -2440,19 +2443,19 @@ blurSlider.addEventListener("input", function() {
   updateBackgroundBlur(blurLevel);
   localStorage.setItem("blurLevel", blurLevel);
 });
-
+var bgPosition = localStorage.getItem("bgPosition") || "center"; 
 function updateBackgroundBlur(blurLevel) {
-  var bgUrl = localStorage.getItem("backgroundImage");
-  var bgContainer = document.getElementById("background-container");
-  
+  var bgUrl = localStorage.getItem("backgroundImage");  
   if (bgUrl && bgContainer) {
     bgContainer.style.backgroundImage = `url(${bgUrl})`;
     bgContainer.style.backgroundSize = "cover";
-    bgContainer.style.backgroundPosition = "center";
+    bgContainer.style.backgroundPosition = bgPosition;
     bgContainer.style.backgroundAttachment = "fixed";
     bgContainer.style.backgroundRepeat = "no-repeat";
     bgContainer.style.filter = `blur(${blurLevel}px)`; 
   }
+   var selectedPosition = bgPositionSelect.value;
+    localStorage.setItem("bgPosition", selectedPosition);
 }
 	localStorage.removeItem("selectedOptionIndex");
 
