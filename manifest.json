@@ -28,7 +28,7 @@
 "theme_color": "#ffffff",
 "background_color":"black",
 "display":"standalone",
-"orientation":"portrait",
+"orientation":"any",
 "display_override": ["window-controls-overlay"]
 
 }

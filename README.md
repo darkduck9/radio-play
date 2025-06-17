@@ -4,5 +4,4 @@ yAudio player from https://github.com/ZHOUYUANN/yAudio
 好用的播放源仓库https://github.com/HerbertHe/iptv-sources 
 https://github.com/huangsuming/iptv 
 https://github.com/hououinkami/AppleTV 
-https://github.com/goolguy007/radioer
 https://github.com/suxuang/myIPTV

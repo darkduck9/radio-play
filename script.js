@@ -1,5 +1,16 @@
 function checkDeviceType() {
-    const isMobile = /iphone|ipad|ipod|android|windows phone/i.test(navigator.userAgent);
+    const userAgent = navigator.userAgent.toLowerCase();
+    // 检测是否为平板设备
+    const isTablet = /ipad|android(?!.*mobile)/i.test(userAgent) || 
+                    (navigator.maxTouchPoints && navigator.maxTouchPoints > 2);
+    // 如果是平板，直接返回desktop
+    if (isTablet) {
+        return {
+            deviceType: 'desktop'
+        };
+    }
+    // 其他设备保持原有逻辑
+    const isMobile = /iphone|ipad|ipod|android|windows phone/i.test(userAgent);
     return {
         deviceType: isMobile ? 'mobile' : 'desktop'
     };
@@ -920,59 +931,6 @@ closeButton2.addEventListener('click', function () {
 
 
 	let currentChannel = 'hitfm';
-	function playHitFM1() {
-	  setPlaybackInfo("https://sk.cri.cn/887.m3u8", "HITFM 劲曲调频",hitfm,'hitfm',0);
-	}
-
-	function playHitFM3() {
-	  setPlaybackInfo("https://satellitepull.cnr.cn/live/wxgjlxyy/playlist.m3u8", "HITFM 北京",hitfm,'hitfm',0);
-	}
-
-	function playev() {
-	  setPlaybackInfo("https://stream.revma.ihrhls.com/zc5953/hls.m3u8", "Evolution",iheart,'ev','5953',1);
-	}
-
-	function playAT40() {
-	  setPlaybackInfo("https://stream.revma.ihrhls.com/zc4802/hls.m3u8", "American Top 40",iheart,'at40','4802',2);
-	}
-	function playZ100() {
-	  setPlaybackInfo("https://stream.revma.ihrhls.com/zc1469/hls.m3u8", "Z100",iheart,'z100','1469',1);
-	}
-	function playic() {
-	  setPlaybackInfo("https://stream.revma.ihrhls.com/zc4418/hls.m3u8", "iHeartCountry",iheart,'ic','4418',1);
-	}
-	function playip() {
-	  setPlaybackInfo("https://playerservices.streamtheworld.com/api/livestream-redirect/ACIR31_S01AAC.m3u8", "iHeartRadio POP",iheart,'ip','8167',2);
-	}
-	function playhitn() {
-	  setPlaybackInfo("https://stream.revma.ihrhls.com/zc4422/hls.m3u8", "Hit Nation",iheart,'hitn','4422',1);
-	}
-	function playimf() {
-	  setPlaybackInfo("https://stream.revma.ihrhls.com/zc5158/hls.m3u8", "iHeartRadio Music Festival",iheart,'imf','5158',1);
-	}
-	function playrn() {
-	  setPlaybackInfo("https://stream.revma.ihrhls.com/zc4443/hls.m3u8", "Rock Nation",iheart,'rn','4443',1);
-	}
-	function playkiis() {
-	  setPlaybackInfo("https://stream.revma.ihrhls.com/zc185/hls.m3u8", "102.7 KIIS-FM",iheart,'kiis','185',1);
-	}
-	 function playmxn() {
-	  setPlaybackInfo("https://stream.revma.ihrhls.com/zc4776/hls.m3u8", "Mix Nation",iheart,'mxn','4776',2);
-	}
-	function playalic() {
-	  setPlaybackInfo("https://stream.revma.ihrhls.com/zc1269/hls.m3u8", "Alice 95.5",iheart,'alic','1269',1);
-	}
-	function playwgc() {
-	  setPlaybackInfo("https://stream.revma.ihrhls.com/zc841/hls.m3u8", "107.5 WGCI Chicago",iheart,'wgc','841',1);
-	}
-	function playbbc1() {	  setPlaybackInfo("https://as-hls-ww-live.akamaized.net/pool_01505109/live/ww/bbc_radio_one/bbc_radio_one.isml/bbc_radio_one-audio%3d320000.norewind.m3u8", "BBC Radio 1",bbc,'0','bbc_radio_one',3);
-	}
-	function playbbc1x() {	  setPlaybackInfo("https://as-hls-ww-live.akamaized.net/pool_904/live/ww/bbc_1xtra/bbc_1xtra.isml/bbc_1xtra-audio%3d320000.norewind.m3u8", "BBC Radio 1Xtra",bbc,'0','bbc_1xtra',3);
-	}
-	function playbbc1d() {	  setPlaybackInfo("https://as-hls-ww-live.akamaized.net/pool_62063831/live/ww/bbc_radio_one_dance/bbc_radio_one_dance.isml/bbc_radio_one_dance-audio%3d320000.norewind.m3u8", "BBC Radio 1 Dance",bbc,'0','bbc_radio_one_dance',3);
-	}
-	function playbbc6() {	  setPlaybackInfo("https://as-hls-ww.live.cf.md.bbci.co.uk/pool_81827798/live/ww/bbc_6music/bbc_6music.isml/bbc_6music-audio%3d320000.norewind.m3u8", "BBC Radio 6 Music",bbc,'0','bbc_6music',3);
-	}
     function updateTitle(newTitle) {
   document.title = newTitle;
   appTitle.textContent = newTitle;
@@ -2959,20 +2917,21 @@ function rgbaToHex(rgba) {
 		}
 	});
 	
-	dayjs.extend(window.dayjs_plugin_utc);
-    dayjs.extend(window.dayjs_plugin_timezone);
-    
-	function getCurrentProgram(channel) {
-    // 使用 Day.js 获取并转换时间
+dayjs.extend(window.dayjs_plugin_utc);
+dayjs.extend(window.dayjs_plugin_timezone);
+dayjs.extend(window.dayjs_plugin_isSameOrBefore);
+dayjs.extend(window.dayjs_plugin_isSameOrAfter);
+
+function getCurrentProgram(channel) {
     const currentTime = dayjs().tz('Asia/Shanghai');
-    const currentDay = currentTime.day(); // Day.js: 0: Sunday, 1: Monday, ..., 6: Saturday
+    const currentDay = currentTime.day(); // 0: 周日, 1: 周一, ..., 6: 周六
     const currentTimeString = currentTime.format('HH:mm:ss');
     
     const selectedChannelSchedule = programSchedule[channel];
     if (!selectedChannelSchedule) {
         return " ";
     }
-
+    
     let daySchedule;
     switch (currentDay) {
         case 0:
@@ -2990,13 +2949,46 @@ function rgbaToHex(rgba) {
         default:
             daySchedule = selectedChannelSchedule.TuesdayToThursday;
     }
-
-    for (const program of daySchedule) {
-        if (currentTimeString >= program.start && currentTimeString <= program.end) {
-            return program.name;
+    
+    function isDST() {
+        const year = currentTime.year();
+        
+        const dstStart = dayjs().year(year).month(2).date(1).day(0);
+        const secondSundayInMarch = dstStart.date() > 7 ? dstStart : dstStart.add(7, 'day');
+        const dstEnd = dayjs().year(year).month(10).date(1).day(0);
+        
+        return currentTime.isAfter(secondSundayInMarch.hour(2)) && 
+               currentTime.isBefore(dstEnd.hour(2));
+    }
+    
+    function adjustForDST(timeString) {
+        if (!isDST()) {
+            return timeString; 
+        }
+        
+        const [hours, minutes, seconds] = timeString.split(':').map(Number);
+        const adjustedHours = (hours - 1 + 24) % 24; 
+        return `${adjustedHours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+    }
+    
+    if (channel === 'hitfm') {
+        for (const program of daySchedule) {
+            if (currentTimeString >= program.start && currentTimeString <= program.end) {
+                return program.name;
+            }
+        }
+    } else {
+        const adjustedCurrentTimeString = isDST() ? 
+            adjustForDST(currentTimeString) : 
+            currentTimeString;
+        
+        for (const program of daySchedule) {
+            if (adjustedCurrentTimeString >= program.start && adjustedCurrentTimeString <= program.end) {
+                return program.name;
+            }
         }
     }
-
+    
     return " ";
 }
 function openSongList() {
@@ -3061,36 +3053,18 @@ function showNewPage(page) {
 }
 
 function updatePaginationIndicator(pageNum) {
-    const paginationLine = document.querySelector('.pagination-line');
-    if (pageNum === 2) {
-        paginationLine.classList.add('page-two');
-    } else {
-        paginationLine.classList.remove('page-two');
-    }
+    // 这个函数现在由 radioManager.js 处理
+    return;
 }
 
 function initPagination() {
-    const paginationLine = document.querySelector('.pagination-line');
-    paginationLine.addEventListener('click', function(event) {
-        const clickPosition = event.offsetX;
-        const lineWidth = this.offsetWidth;
-        if (clickPosition < lineWidth / 2) {
-            changePage(1);
-        } else {
-            changePage(2);
-        }
-    });
+    // 这个函数现在由 radioManager.js 处理
+    return;
 }
 
 function updatePaginationButtons(activePageNum) {
-    const buttons = document.querySelectorAll('.pagination button');
-    buttons.forEach((button, index) => {
-        if (index + 1 === activePageNum) {
-            button.classList.add('active');
-        } else {
-            button.classList.remove('active');
-        }
-    });
+    // 这个函数现在由 radioManager.js 处理
+    return;
 }
 
 function updateProgramName(channel) {

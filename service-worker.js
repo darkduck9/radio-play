@@ -2,8 +2,8 @@ importScripts('https://cdnjs.cloudflare.com/ajax/libs/workbox-sw/7.0.0/workbox-s
 
 const versions = {
     images: 'v0.53',
-    js: 'v0.70',
-    css: 'v0.59'
+    js: 'v0.69',
+    css: 'v0.58'
 };
 
 if (workbox) {
@@ -23,7 +23,7 @@ if (workbox) {
         })
     );
 
-    workbox.routing.registerRoute(
+   // workbox.routing.registerRoute(
         ({request}) => request.destination === 'script',
         new workbox.strategies.CacheFirst({
             cacheName: `js-cache-${versions.js}`,
@@ -39,7 +39,7 @@ if (workbox) {
         })
     );
 
-    workbox.routing.registerRoute(
+   // workbox.routing.registerRoute(
         ({request}) => request.destination === 'style',
         new workbox.strategies.CacheFirst({
             cacheName: `css-cache-${versions.css}`,
