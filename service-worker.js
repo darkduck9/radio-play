@@ -2,7 +2,7 @@ importScripts('https://cdnjs.cloudflare.com/ajax/libs/workbox-sw/7.0.0/workbox-s
 
 const versions = {
     images: 'v0.53',
-    js: 'v0.71',
+    js: 'v0.72',
     css: 'v0.60'
 };
 
@@ -75,3 +75,4 @@ self.addEventListener('activate', event => {
         })
     );
 });
+
