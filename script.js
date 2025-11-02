@@ -967,7 +967,7 @@ closeButton2.addEventListener('click', function () {
 	}
 	function playbbc1() {	  setPlaybackInfo("https://as-hls-ww-live.akamaized.net/pool_01505109/live/ww/bbc_radio_one/bbc_radio_one.isml/bbc_radio_one-audio%3d320000.norewind.m3u8", "BBC Radio 1",bbc,'0','bbc_radio_one',3);
 	}
-	function playbbc1x() {	  setPlaybackInfo("https://as-hls-ww-live.akamaized.net/pool_904/live/ww/bbc_1xtra/bbc_1xtra.isml/bbc_1xtra-audio%3d320000.norewind.m3u8", "BBC Radio 1Xtra",bbc,'0','bbc_1xtra',3);
+	function playbbc1x() {	  setPlaybackInfo("https://as-hls-ww-live.akamaized.net/pool_92079267/live/ww/bbc_1xtra/bbc_1xtra.isml/bbc_1xtra-audio%3d320000.norewind.m3u8", "BBC Radio 1Xtra",bbc,'0','bbc_1xtra',3);
 	}
 	function playbbc1d() {	  setPlaybackInfo("https://as-hls-ww-live.akamaized.net/pool_62063831/live/ww/bbc_radio_one_dance/bbc_radio_one_dance.isml/bbc_radio_one_dance-audio%3d320000.norewind.m3u8", "BBC Radio 1 Dance",bbc,'0','bbc_radio_one_dance',3);
 	}
@@ -3250,3 +3250,4 @@ function updateCountdown() {
   const remainingTime = parseInt(timeInput.value * 60 - (Date.now() - countdownStart) / 1000);
   countdown.innerHTML = `剩余时间: ${remainingTime} 秒`;
 }
+
