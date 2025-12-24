@@ -238,16 +238,15 @@ font-size: 15vw;
     max-width: 90%; 
     min-width: 30%; 
 }
-
 .song-cover {
     flex-shrink: 0;
     width: 50px;
     height: 50px;
     border-radius: 8px;
-    background-size: cover;
+    background-size: contain;
     background-position: center;
+    background-repeat: no-repeat; 
 }
-
 .song-details {
     flex-grow: 1;
     display: flex;
@@ -627,6 +626,7 @@ input[type="range"].volume-level::-webkit-slider-thumb {filter: none !important;
     z-index: 9999;
     display: flex; 
     justify-content: space-between;
+    align-items: center;
 }
 
 .show {
@@ -990,7 +990,6 @@ width: 70%;}
 
 .radio-button {width:100%;
   background-color: transparent;
-  border: 1px solid  #e0e0e0;
   border-radius: 10px;
   padding: 5px;
   text-align: center;
@@ -1004,6 +1003,20 @@ width: 70%;}
   position: relative;
   overflow: hidden;
 }
+.radio-button {
+  transition: transform 360ms cubic-bezier(0.2,0.8,0.2,1), box-shadow 360ms cubic-bezier(0.2,0.8,0.2,1), background-color 360ms;
+  transform: translateZ(0);
+  will-change: transform, box-shadow;
+  border-radius: 10px;
+  position: relative;
+  overflow: hidden;
+}
+
+.radio-button:hover .radio-icon,
+.radio-button:focus .radio-icon {
+  transform: scale(1.08);
+}
+
 .radio-button::before {
   content: '';
   position: absolute;
@@ -1176,7 +1189,7 @@ width: 70%;}
 
 .pagination-dot.active {
     color: var(--on-primary-container, #fff);
-    background: var(--primary, #6750A4);
+    background: var(--main-color);
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }
 
@@ -1200,12 +1213,29 @@ width: 70%;}
     
     .pagination-dot.active {
         color: var(--on-primary-container, #fff);
-        background: var(--primary, #6750A4);
-    }
+background: var(--main-color);    }
+}
+
+/* 亮色模式下分页数字适配（不影响暗色模式） */
+body:not(.dark) .pagination-dot {
+  color: rgba(0, 0, 0, 0.8);
+}
+body:not(.dark) .pagination-dot:hover {
+  color: rgba(0, 0, 0, 0.95);
+}
+body:not(.dark) .pagination-dot.active {
+  color: #ffffff; /* 在激活状态下使用白色文本以保证对比 */
+background: var(--main-color);  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.12);
+}
+/* 保留基于 prefers-color-scheme: dark 的原有规则，不会被上述覆盖 */
+@media (prefers-color-scheme: light) {
+  .pagination-line {
+    background: rgba(0, 0, 0, 0.04);
+  }
 }
 
 .link-button {
-  width: 80px;
+  width: 120px;
   height: 40px;
   position: relative;
   overflow: hidden;

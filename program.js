@@ -1,56 +1,5 @@
 const programSchedule = {//UTC+08:00 		
-		'hitfm': 
-		{ TuesdayToThursday: [
-			  { start: "00:00:00", end: "06:00:00", name: "Music Flow 音乐流" },
-			  { start: "06:00:00", end: "07:00:00", name: "Morning Call 音乐叫早" },
-			  { start: "07:00:00", end: "10:00:00", name: "Morning Hits 阳光音乐早餐" },
-			  { start: "10:00:00", end: "13:00:00", name: "At Work Network 工作随身听" },
-			  { start: "13:00:00", end: "16:00:00", name: "Lazy Afternoon 慵懒下午茶" },
-			  { start: "16:00:00", end: "19:00:00", name: "Big Drive Home 开车现场秀" },
-			  { start: "19:00:00", end: "22:00:00", name: "New Music Express 新音乐速递" },
-			  { start: "22:00:00", end: "23:59:59", name: "Hit FM Dance 电音" }
-			],
-          Monday: [
-			  { start: "00:00:00", end: "06:00:00", name: "Music Flow 音乐流" },
-			  { start: "06:00:00", end: "07:00:00", name: "Morning Call 音乐叫早" },
-			  { start: "07:00:00", end: "10:00:00", name: "Morning Hits 阳光音乐早餐" },
-			  { start: "10:00:00", end: "13:00:00", name: "At Work Network 工作随身听" },
-			  { start: "13:00:00", end: "16:00:00", name: "Lazy Afternoon 慵懒下午茶" },
-			  { start: "16:00:00", end: "19:00:00", name: "Big Drive Home 开车现场秀" },
-			  { start: "19:00:00", end: "22:00:00", name: "New Music Express 新音乐速递" },
-			  { start: "22:00:00", end: "23:59:59", name: "Hit FM Dance 电音" }
-			],
-         Friday: [
-			  { start: "00:00:00", end: "06:00:00", name: "Music Flow 音乐流" },
-			  { start: "06:00:00", end: "07:00:00", name: "Morning Call 音乐叫早" },
-			  { start: "07:00:00", end: "10:00:00", name: "Morning Hits 阳光音乐早餐" },
-			  { start: "10:00:00", end: "13:00:00", name: "At Work Network 工作随身听" },
-			  { start: "13:00:00", end: "16:00:00", name: "Lazy Afternoon 慵懒下午茶" },
-			  { start: "16:00:00", end: "19:00:00", name: "Big Drive Home 开车现场秀" },
-			  { start: "19:00:00", end: "22:00:00", name: "New Music Express 新音乐速递" },
-			  { start: "22:00:00", end: "23:59:59", name: "Hit FM Dance 电音" }
-			],
-			Saturday: [
-			  { start: "00:00:00", end: "08:00:00", name: "Music Flow 音乐流" },
-			  { start: "08:00:00", end: "12:00:00", name: "Weekend Morning Show 周末早间音乐" },
-			  { start: "12:00:00", end: "14:00:00", name: "Hit the Road 在路上" },
-			  { start: "14:00:00", end: "16:00:00", name: "Soul Make 心灵制造" },
-			  { start: "16:00:00", end: "18:00:00", name: "Rock DJ 摇滚DJ" },
-			  { start: "18:00:00", end: "20:00:00", name: "Top 20 Countdown 顶尖20排行榜" },
-			  { start: "20:00:00", end: "22:00:00", name: "CTDM Chart 中国电子音乐巅峰榜" },
-			  { start: "22:00:00", end: "23:59:59", name: "Hit FM Dance 电音" }
-			],
-			Sunday: [
-			  { start: "00:00:00", end: "08:00:00", name: "Music Flow 音乐流" },
-			  { start: "08:00:00", end: "12:00:00", name: "Weekend Morning Show 周末早间音乐" },
-			  { start: "12:00:00", end: "14:00:00", name: "Rock DJ 摇滚DJ" },
-			  { start: "14:00:00", end: "16:00:00", name: "CTDM Chart 中国电子音乐巅峰榜" },
-			  { start: "16:00:00", end: "18:00:00", name: "Hit FM OST 电影原声坊" },
-			  { start: "18:00:00", end: "20:00:00", name: "Top 20 Countdown 顶尖20排行榜" },
-			  { start: "20:00:00", end: "22:00:00", name: "Hit FM Dance Carta & Co. 电音-卡塔" },
-			  { start: "22:00:00", end: "23:59:59", name: "Hit FM Dance 电音" }
-			]
-		},
+	
 		'ev': 
 	   { TuesdayToThursday: [			  
 	          { start: "00:00:00", end: "23:59:59", name: "All Things Dance" },	        

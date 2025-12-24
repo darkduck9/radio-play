@@ -1,37 +1,47 @@
-// 从localStorage获取保存的排序，如果没有则使用默认排序
 function getSavedOrder() {
     const savedOrder = localStorage.getItem('radioOrder');
     return savedOrder ? JSON.parse(savedOrder) : null;
 }
 
-// 保存排序到localStorage
 function saveOrder(order) {
     localStorage.setItem('radioOrder', JSON.stringify(order));
 }
 
 const defaultRadioStations = [
     {
-        name: "Hit FM 官网",
-        icon: "./icons/hitfmany.png",
+        name: "Capital FM",
+        icon: "./icons/Capital.png",
         params: {
-            url: "https://sk.cri.cn/887.m3u8",
-            title: "HITFM 劲曲调频",
-            cover: "./icons/hitfmany.png",
-            channel: "hitfm",
-            id: "hitfm",
+            url: "https://ice-sov.musicradio.com/CapitalUKHD?hdauth=:2000000000:a290d4b39a16153061d4c743008b9fe8d424a7e5ec6469d40acf51fdcd336e80",
+            title: "Capital FM",
+            cover: "./icons/Capital.png",
+            channel: "Capital",
+            id: "Capital",
             mark: 0
         }
     },
     {
-        name: "Hit FM 北京",
-        icon: "./icons/hitfmany.png",
+        name: "2DayFM",
+        icon: "./icons/2Day.png",
         params: {
-            url: "https://satellitepull.cnr.cn/live/wxgjlxyy/playlist.m3u8",
-            title: "HITFM 北京",
-            cover: "./icons/hitfmany.png",
-            channel: "hitfm",
-            id: "hitfm1",
+            url: "https://wz2liw.scahw.com.au/live/2day_128.stream/playlist.m3u8",
+            title: "2DayFM",
+            cover: "./icons/2Day.png",
+            channel: "2DayFM",
+            id: "2DayFM",
             mark: 0
+        }
+    },
+        {
+        name: "Hit Nation",
+        icon: "./icons/hitn.webp",
+        params: {
+            url: "https://stream.revma.ihrhls.com/zc4422/hls.m3u8",
+            title: "Hit Nation",
+            cover: "./icons/hitn.webp",
+            channel: "hitn",
+            id: "4422",
+            mark: 1
         }
     },
     {
@@ -41,7 +51,7 @@ const defaultRadioStations = [
             url: "https://stream.revma.ihrhls.com/zc5953/hls.m3u8",
             title: "Evolution",
             cover: "./icons/evo.webp",
-            channel: "iheart",
+            channel: "ev",
             id: "5953",
             mark: 1
         }
@@ -53,23 +63,24 @@ const defaultRadioStations = [
             url: "https://stream.revma.ihrhls.com/zc4802/hls.m3u8",
             title: "American Top 40",
             cover: "./icons/at40.svg",
-            channel: "iheart",
+            channel: "at40",
             id: "4802",
             mark: 2
         }
     },
-    {
-        name: "Z100",
-        icon: "./icons/z100.webp",
+        {
+        name: "107.5 WGCI Chicago",
+        icon: "./icons/wgc.webp",
         params: {
-            url: "https://stream.revma.ihrhls.com/zc1469/hls.m3u8",
-            title: "Z100",
-            cover: "./icons/z100.webp",
-            channel: "iheart",
-            id: "1469",
+            url: "https://stream.revma.ihrhls.com/zc841/hls.m3u8",
+            title: "107.5 WGCI Chicago",
+            cover: "./icons/wgc.webp",
+            channel: "wgc",
+            id: "841",
             mark: 1
         }
     },
+
     {
         name: "iHeartCountry",
         icon: "./icons/ic.webp",
@@ -77,7 +88,7 @@ const defaultRadioStations = [
             url: "https://stream.revma.ihrhls.com/zc4418/hls.m3u8",
             title: "iHeartCountry",
             cover: "./icons/ic.webp",
-            channel: "iheart",
+            channel: "ic",
             id: "4418",
             mark: 1
         }
@@ -89,23 +100,12 @@ const defaultRadioStations = [
             url: "https://playerservices.streamtheworld.com/api/livestream-redirect/ACIR31_S01AAC.m3u8",
             title: "iHeartRadio POP",
             cover: "./icons/ip.webp",
-            channel: "iheart",
+            channel: "ip",
             id: "8167",
             mark: 2
         }
     },
-    {
-        name: "Hit Nation",
-        icon: "./icons/hitn.webp",
-        params: {
-            url: "https://stream.revma.ihrhls.com/zc4422/hls.m3u8",
-            title: "Hit Nation",
-            cover: "./icons/hitn.webp",
-            channel: "iheart",
-            id: "4422",
-            mark: 1
-        }
-    },
+
     {
         name: "iHeartRadio Music Festival",
         icon: "./icons/imf.webp",
@@ -113,20 +113,21 @@ const defaultRadioStations = [
             url: "https://stream.revma.ihrhls.com/zc5158/hls.m3u8",
             title: "iHeartRadio Music Festival",
             cover: "./icons/imf.webp",
-            channel: "iheart",
+            channel: "imf",
             id: "5158",
             mark: 1
         }
     },
-    {
-        name: "Rock Nation",
-        icon: "./icons/rn.webp",
+
+        {
+        name: "Z100",
+        icon: "./icons/z100.webp",
         params: {
-            url: "https://stream.revma.ihrhls.com/zc4443/hls.m3u8",
-            title: "Rock Nation",
-            cover: "./icons/rn.webp",
-            channel: "iheart",
-            id: "4443",
+            url: "https://stream.revma.ihrhls.com/zc1469/hls.m3u8",
+            title: "Z100",
+            cover: "./icons/z100.webp",
+            channel: "z100",
+            id: "1469",
             mark: 1
         }
     },
@@ -137,8 +138,32 @@ const defaultRadioStations = [
             url: "https://stream.revma.ihrhls.com/zc185/hls.m3u8",
             title: "102.7 KIIS-FM",
             cover: "./icons/kiis.webp",
-            channel: "iheart",
+            channel: "kiis",
             id: "185",
+            mark: 1
+        }
+    },
+       {
+        name: "Alice 95.5",
+        icon: "./icons/alic.webp",
+        params: {
+            url: "https://stream.revma.ihrhls.com/zc1269/hls.m3u8",
+            title: "Alice 95.5",
+            cover: "./icons/alic.webp",
+            channel: "alic",
+            id: "1269",
+            mark: 1
+        }
+    },
+        {
+        name: "Rock Nation",
+        icon: "./icons/rn.webp",
+        params: {
+            url: "https://stream.revma.ihrhls.com/zc4443/hls.m3u8",
+            title: "Rock Nation",
+            cover: "./icons/rn.webp",
+            channel: "rn",
+            id: "4443",
             mark: 1
         }
     },
@@ -149,35 +174,13 @@ const defaultRadioStations = [
             url: "https://stream.revma.ihrhls.com/zc4776/hls.m3u8",
             title: "Mix Nation",
             cover: "./icons/mixn.webp",
-            channel: "iheart",
+            channel: "mixn",
             id: "4776",
             mark: 2
         }
     },
-    {
-        name: "Alice 95.5",
-        icon: "./icons/alic.webp",
-        params: {
-            url: "https://stream.revma.ihrhls.com/zc1269/hls.m3u8",
-            title: "Alice 95.5",
-            cover: "./icons/alic.webp",
-            channel: "iheart",
-            id: "1269",
-            mark: 1
-        }
-    },
-    {
-        name: "107.5 WGCI Chicago",
-        icon: "./icons/wgc.webp",
-        params: {
-            url: "https://stream.revma.ihrhls.com/zc841/hls.m3u8",
-            title: "107.5 WGCI Chicago",
-            cover: "./icons/wgc.webp",
-            channel: "iheart",
-            id: "841",
-            mark: 1
-        }
-    },
+ 
+
     {
         name: "BBC Radio 1",
         icon: "./icons/bbc1.svg",

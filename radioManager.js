@@ -40,29 +40,29 @@ class RadioManager {
         document.body.appendChild(contextMenu);
 
         // 添加右键菜单事件
-        container.addEventListener('contextmenu', (e) => {
-            e.preventDefault();
-            const rect = container.getBoundingClientRect();
-            const x = e.clientX - rect.left;
-            const y = e.clientY - rect.top;
+        //container.addEventListener('contextmenu', (e) => {
+         //   e.preventDefault();
+         //   const rect = container.getBoundingClientRect();
+          //  const x = e.clientX - rect.left;
+          //  const y = e.clientY - rect.top;
             
             // 确保菜单不会超出容器边界
-            const menuWidth = 150;
-            const menuHeight = 40;
-            let left = e.clientX;
-            let top = e.clientY;
+         //   const menuWidth = 150;
+          //  const menuHeight = 40;
+          //  let left = e.clientX;
+           // let top = e.clientY;
             
-            if (left + menuWidth > window.innerWidth) {
-                left = window.innerWidth - menuWidth;
-            }
-            if (top + menuHeight > window.innerHeight) {
-                top = window.innerHeight - menuHeight;
-            }
+          //  if (left + menuWidth > window.innerWidth) {
+           //     left = window.innerWidth - menuWidth;
+          //  }
+          //  if (top + menuHeight > window.innerHeight) {
+          //      top = window.innerHeight - menuHeight;
+         //   }
             
-            contextMenu.style.display = 'block';
-            contextMenu.style.left = `${left}px`;
-            contextMenu.style.top = `${top}px`;
-        });
+         //   contextMenu.style.display = 'block';
+         //   contextMenu.style.left = `${left}px`;
+          //  contextMenu.style.top = `${top}px`;
+      //  });
 
         // 点击其他地方关闭菜单
         document.addEventListener('click', (e) => {
@@ -605,9 +605,12 @@ class RadioManager {
     initMouseEvents() {
         const container = document.getElementById('radio-container');
         
+        // 仅在左键按下时开始拖动，避免右键/中键触发
         container.addEventListener('mousedown', (e) => {
+            if (e.button !== 0) return; // 0 = 左键
             this.isDragging = true;
             this.touchStartX = e.clientX;
+            this.touchEndX = e.clientX; // 初始化，防止未移动时误判
         });
 
         container.addEventListener('mousemove', (e) => {
@@ -615,16 +618,23 @@ class RadioManager {
             this.touchEndX = e.clientX;
         });
 
-        container.addEventListener('mouseup', () => {
+        container.addEventListener('mouseup', (e) => {
             if (!this.isDragging) return;
             this.isDragging = false;
+            this.touchEndX = e.clientX; // 确保结束位置被更新
             this.handleSwipe();
         });
 
-        container.addEventListener('mouseleave', () => {
+        container.addEventListener('mouseleave', (e) => {
             if (!this.isDragging) return;
             this.isDragging = false;
+            this.touchEndX = e.clientX || this.touchStartX; // 保底处理
             this.handleSwipe();
+        });
+
+        // 右键菜单时确保不保留拖动状态
+        container.addEventListener('contextmenu', (e) => {
+            this.isDragging = false;
         });
     }
 
@@ -724,27 +734,39 @@ class RadioManager {
 
     createPaginationIndicator() {
         const container = document.getElementById('radio-container');
+
+        // 移除可能已存在的指示器，避免重复绑定事件或覆盖
+        const existing = container.querySelector('.pagination');
+        if (existing) existing.remove();
+
         const pagination = document.createElement('div');
         pagination.className = 'pagination';
-        
+
         const line = document.createElement('div');
         line.className = 'pagination-line';
-        
-        // 创建多个指示点
+        line.style.display = 'flex';
+        line.style.justifyContent = 'center';
+        line.style.gap = '10px';
+
+        // 创建多个指示点（使用 data-page 存储页号，使用事件委托处理点击）
         for (let i = 0; i < this.totalPages; i++) {
             const dot = document.createElement('div');
             dot.className = 'pagination-dot';
             dot.textContent = i + 1;
+            dot.dataset.page = String(i + 1);
+            dot.style.cursor = 'pointer';
             if (i === 0) dot.classList.add('active');
-            
-            // 添加点击事件
-            dot.addEventListener('click', () => {
-                this.changePage(i + 1);
-            });
-            
             line.appendChild(dot);
         }
-        
+
+        // 委托点击事件，避免在生成时意外触发多次绑定或闭包问题
+        line.addEventListener('click', (e) => {
+            const target = e.target.closest('.pagination-dot');
+            if (!target) return;
+            const page = parseInt(target.dataset.page, 10);
+            if (!isNaN(page)) this.changePage(page);
+        });
+
         pagination.appendChild(line);
         container.appendChild(pagination);
     }
@@ -836,4 +858,4 @@ class RadioManager {
 // 初始化
 document.addEventListener('DOMContentLoaded', () => {
     new RadioManager();
-}); 
+});

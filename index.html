@@ -12,16 +12,13 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/hls.js/1.5.14/hls.min.js" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/hls.js/1.6.9/hls.min.js" crossorigin="anonymous"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/1.7.0/axios.min.js" crossorigin="anonymous"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/workbox-sw/7.0.0/workbox-sw.min.js" crossorigin="anonymous"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.6/Sortable.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 <script src="https://unpkg.com/dayjs@1.11.11/dayjs.min.js" crossorigin="anonymous"></script>
 <script src="https://unpkg.com/dayjs@1.11.11/plugin/utc.js" crossorigin="anonymous"></script>
 <script src="https://unpkg.com/dayjs@1.11.11/plugin/timezone.js" crossorigin="anonymous"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/dayjs/1.10.7/plugin/isSameOrBefore.min.js" crossorigin="anonymous" ></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/dayjs/1.10.7/plugin/isSameOrAfter.min.js" crossorigin="anonymous"></script>
-<script src="https://lf26-cdn-tos.bytecdntp.com/cdn/expire-1-y/pako/2.0.4/pako.min.js" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pako/2.1.0/pako.min.js" crossorigin="anonymous"></script>
  <script src="./program.js"></script>
   </head>
 <body class="loading"><!-- SVG 图标 -->
@@ -64,7 +61,7 @@ stroke-width: 2px;}</style></defs><rect class="cls-1" x="1" y="1" width="24" hei
     <div class="input-boxLine">
         <input id="inputUrl" type="text" required />
         <div class="line"></div>
-        <span id="textToEdit">WE PLAY ONLY THE HITS</span>
+        <span id="textToEdit">NEVER STOP THE BEAT</span>
         <div class="button-group">
             <button class="playBut" onclick="cplay()">
                 <svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:a="http://ns.adobe.com/AdobeSVGViewerExtensions/3.0/" x="0px" y="0px" width="40px" height="40px" viewBox="0 0 213.7 213.7" enable-background="new 0 0 213.7 213.7" xml:space="preserve">
@@ -96,9 +93,7 @@ stroke-width: 2px;}</style></defs><rect class="cls-1" x="1" y="1" width="24" hei
 </div>
 <div id="content-container">       
        <div class="player">
-       <button class="link-button" onclick="goToWebpage()" role="button"><span class="text">HitFMLive</span><span>Bilibili</span></button>
-       <button class="link-button" id="top20" role="button"><span class="text">TOP 20</span><span>网易云</span></button>
-       <button class="link-button" onclick="goToWebpage2()" role="button"><span class="text">TOP MV</span><span>Acfun</span></button>
+      <button class="link-button" onclick="goToWebpage2()" role="button"><span class="text">往期TOP20 MV</span><span>Acfun</span></button>
        <button class="link-button" id="at40" role="button"><span class="text">AT 40</span><span>网易云</span></button>
        </div> 
          </div>
@@ -176,8 +171,8 @@ stroke-width: 2px;}</style></defs><rect class="cls-1" x="1" y="1" width="24" hei
     </div>
      <div class="page about">
      <p class="t"><a href="https://hitfm.pp.ua">hitfm.pp.ua</a><br> 自定义数据及添加的电台数据使用本地存储 <br>备份的数据包括1.自定义设置<br>和2.添加到主页的电台数据</p><hr><p class="t">自定义电台<br>部分电台有地域限制或ipv6<br>国外电台使用代理更流畅<br>部分浏览器安全限制，'不能'<br>在https下访问http的内容。解决方法<br>1.把http改为https<br>(部分链接只支持http，注意关闭浏览器的<br>http自动升级为https功能）或在本地打开
-</p><hr><p class="t">报错的链接会使用默认方式打开<br>若使用新标签页，电脑浏览器需要安装<br>hls播放扩展插件：<br><a href="https://chrome.google.com/webstore/detail/native-mpeg-dash-%2B-hls-pl/cjfbmleiaobegagekpmlhmaadepdeedn">chrome</a>/<a href="https://addons.mozilla.org/en-US/firefox/addon/native-mpeg-dash-hls-playback/">mozilla</a> addons<br>专业播放器调用，<br>参考<a href="https://greasyfork.org/zh-CN/scripts/518677-external-player">这脚本</a>设置URL Scheme</p><hr><p class="t">直播源使用m3u格式<br>比如项目: <a href="https://m3u.ibert.me/">iptv-sources
-</a>播放源2<a href="https://m3u.ibert.me/y_g.m3u">@YanG-1989</a><br>播放源3(地方台):<a href="https://huangsuming.github.io/iptv/list/tvlist.txt">@huangsuming</a><br>推荐播放源4<a href="https://raw.githubusercontent.com/suxuang/myIPTV/main/ipv6.m3u">@suxuang</a><br>广播网站:<a href="https://cooltv.top">@goolguy007</a></p><hr> <p class="t">yAudio音频播放器来自<a href="https://github.com/ZHOUYUANN/yAudio" > @ZHOUYUANN </a></p>
+</p><hr><p class="t">报错的链接会使用默认方式打开<br>若使用新标签页，电脑浏览器需要安装<br>hls播放扩展插件：<br><a href="https://chrome.google.com/webstore/detail/native-mpeg-dash-%2B-hls-pl/cjfbmleiaobegagekpmlhmaadepdeedn">chrome</a>/<a href="https://addons.mozilla.org/en-US/firefox/addon/native-mpeg-dash-hls-playback/">mozilla</a> addons<br>专业播放器调用，<br>参考<a href="https://greasyfork.org/zh-CN/scripts/518677-external-player">这脚本</a>设置URL Scheme</p><hr><p class="t">直播源使用m3u格式<br>比如项目: <a href="https://m3u.ibert.me/">iptv-sources</a>
+<br>播放源(地方台):<a href="https://huangsuming.github.io/iptv/list/tvlist.txt">@huangsuming</a><br>推荐播放源2<a href="https://raw.githubusercontent.com/suxuang/myIPTV/main/ipv4.m3u">@suxuang</a><br>广播网站:<a href="https://cooltv.top">@goolguy007</a></p><hr> <p class="t">yAudio音频播放器来自<a href="https://github.com/ZHOUYUANN/yAudio" > @ZHOUYUANN </a></p>
         <button id="about-btn">关于</button>
     </div>
 </div>
