@@ -1,5 +1,16 @@
 function checkDeviceType() {
-    const isMobile = /iphone|ipad|ipod|android|windows phone/i.test(navigator.userAgent);
+    const userAgent = navigator.userAgent.toLowerCase();
+    // 检测是否为平板设备
+    const isTablet = /ipad|android(?!.*mobile)/i.test(userAgent) || 
+                    (navigator.maxTouchPoints && navigator.maxTouchPoints > 2);
+    // 如果是平板，直接返回desktop
+    if (isTablet) {
+        return {
+            deviceType: 'desktop'
+        };
+    }
+    // 其他设备保持原有逻辑
+    const isMobile = /iphone|ipad|ipod|android|windows phone/i.test(userAgent);
     return {
         deviceType: isMobile ? 'mobile' : 'desktop'
     };
@@ -447,9 +458,6 @@ function updateMediaMetadata() {
 
 		const audio = document.getElementById('audio');
 		const inputUrl = document.getElementById('inputUrl');
-		const hitfm = 'https://p1.music.126.net/e9akTfr5SUJX9nIVdIYFHw==/109951164828622694.jpg'
-		const iheart = 'https://p1.music.126.net/J32qbemrQtkBMHiVq21Djw==/18723583511609689.jpg'
-		const bbc = 'https://p1.music.126.net/pMdzEAArKfkAcrtM3r8aog==/18691697674155874.jpg'
 	let currentHls = null; // Store the current HLS instance
 	var selectElement = document.getElementById("src_select");
 
@@ -897,7 +905,6 @@ function showNotification(message) {
 	  const video = document.getElementById('video');
 	  const showButton = document.getElementById('showButton');
 	  const closeButton = document.getElementById('closeButton'); 
-	  const top20 = document.getElementById('top20');
 	  const at40 = document.getElementById('at40');
 	  const closeButton2 = document.getElementById('closeButton2');
 
@@ -908,9 +915,7 @@ function showNotification(message) {
     videoModal.classList.remove('show');
 });
 
-	 top20.addEventListener('click', function () {
-    musicModal.classList.add('show'); 
-});
+	 
 at40.addEventListener('click', function () {
     musicModal.classList.add('show');
 });
@@ -920,59 +925,6 @@ closeButton2.addEventListener('click', function () {
 
 
 	let currentChannel = 'hitfm';
-	function playHitFM1() {
-	  setPlaybackInfo("https://sk.cri.cn/887.m3u8", "HITFM 劲曲调频",hitfm,'hitfm',0);
-	}
-
-	function playHitFM3() {
-	  setPlaybackInfo("https://satellitepull.cnr.cn/live/wxgjlxyy/playlist.m3u8", "HITFM 北京",hitfm,'hitfm',0);
-	}
-
-	function playev() {
-	  setPlaybackInfo("https://stream.revma.ihrhls.com/zc5953/hls.m3u8", "Evolution",iheart,'ev','5953',1);
-	}
-
-	function playAT40() {
-	  setPlaybackInfo("https://stream.revma.ihrhls.com/zc4802/hls.m3u8", "American Top 40",iheart,'at40','4802',2);
-	}
-	function playZ100() {
-	  setPlaybackInfo("https://stream.revma.ihrhls.com/zc1469/hls.m3u8", "Z100",iheart,'z100','1469',1);
-	}
-	function playic() {
-	  setPlaybackInfo("https://stream.revma.ihrhls.com/zc4418/hls.m3u8", "iHeartCountry",iheart,'ic','4418',1);
-	}
-	function playip() {
-	  setPlaybackInfo("https://playerservices.streamtheworld.com/api/livestream-redirect/ACIR31_S01AAC.m3u8", "iHeartRadio POP",iheart,'ip','8167',2);
-	}
-	function playhitn() {
-	  setPlaybackInfo("https://stream.revma.ihrhls.com/zc4422/hls.m3u8", "Hit Nation",iheart,'hitn','4422',1);
-	}
-	function playimf() {
-	  setPlaybackInfo("https://stream.revma.ihrhls.com/zc5158/hls.m3u8", "iHeartRadio Music Festival",iheart,'imf','5158',1);
-	}
-	function playrn() {
-	  setPlaybackInfo("https://stream.revma.ihrhls.com/zc4443/hls.m3u8", "Rock Nation",iheart,'rn','4443',1);
-	}
-	function playkiis() {
-	  setPlaybackInfo("https://stream.revma.ihrhls.com/zc185/hls.m3u8", "102.7 KIIS-FM",iheart,'kiis','185',1);
-	}
-	 function playmxn() {
-	  setPlaybackInfo("https://stream.revma.ihrhls.com/zc4776/hls.m3u8", "Mix Nation",iheart,'mxn','4776',2);
-	}
-	function playalic() {
-	  setPlaybackInfo("https://stream.revma.ihrhls.com/zc1269/hls.m3u8", "Alice 95.5",iheart,'alic','1269',1);
-	}
-	function playwgc() {
-	  setPlaybackInfo("https://stream.revma.ihrhls.com/zc841/hls.m3u8", "107.5 WGCI Chicago",iheart,'wgc','841',1);
-	}
-	function playbbc1() {	  setPlaybackInfo("https://as-hls-ww-live.akamaized.net/pool_01505109/live/ww/bbc_radio_one/bbc_radio_one.isml/bbc_radio_one-audio%3d320000.norewind.m3u8", "BBC Radio 1",bbc,'0','bbc_radio_one',3);
-	}
-	function playbbc1x() {	  setPlaybackInfo("https://as-hls-ww-live.akamaized.net/pool_92079267/live/ww/bbc_1xtra/bbc_1xtra.isml/bbc_1xtra-audio%3d320000.norewind.m3u8", "BBC Radio 1Xtra",bbc,'0','bbc_1xtra',3);
-	}
-	function playbbc1d() {	  setPlaybackInfo("https://as-hls-ww-live.akamaized.net/pool_62063831/live/ww/bbc_radio_one_dance/bbc_radio_one_dance.isml/bbc_radio_one_dance-audio%3d320000.norewind.m3u8", "BBC Radio 1 Dance",bbc,'0','bbc_radio_one_dance',3);
-	}
-	function playbbc6() {	  setPlaybackInfo("https://as-hls-ww.live.cf.md.bbci.co.uk/pool_81827798/live/ww/bbc_6music/bbc_6music.isml/bbc_6music-audio%3d320000.norewind.m3u8", "BBC Radio 6 Music",bbc,'0','bbc_6music',3);
-	}
     function updateTitle(newTitle) {
   document.title = newTitle;
   appTitle.textContent = newTitle;
@@ -989,13 +941,70 @@ function loadings() {
         document.body.classList.remove('loading');
     }, 12000);
 }
+		function playmore(link, title,cover){ 
+			const url = link;
+			const fileExtension = url.split('.').pop().toLowerCase();
+			desiredOption.selected = true;
+			if (currentHls) {
+				currentHls.destroy();
+			}
+			 if (currentRequest !== null) {
+		clearTimeout(currentRequest);
+	  }
+			if (fileExtension !== 'm3u8') {
+				stopAudio();
+				const audio = document.getElementById('video');
+				loadings();
+				updateTitle(title);
+				audio.src = url;
+
+				try {
+					const playPromise = audio.play();
+					if (playPromise !== undefined) {
+						playPromise.then(_ => {
+							document.body.classList.remove('loading');
+							if ('mediaSession' in navigator && 'MediaMetadata' in window) {
+    navigator.mediaSession.metadata = new MediaMetadata({
+        title: title,
+        artist: 'HITFM Player',
+        artwork: [{
+            src: cover,
+            sizes: '300x300',
+            type: 'image/jpg'
+        }]
+    });
+}
+						}).catch(error => {//302跳转非直链m3u8无法使用hls.js播放
+						 const notification = document.createElement('div');
+		notification.className = 'notification';
+		notification.textContent = `尝试默认播放方式`;
+		 document.body.appendChild(notification);
+		 setTimeout(() => {
+			document.body.removeChild(notification);
+		}, 1000);
+		window.openLink(title, url);
+						});
+					}
+				} catch (error) {
+		window.openLink(title, url);
+				}
+			} else {
+		   setPlaybackInfo(url, title,cover);
+			 }
+	   }
+	   
  let ihId;
 	function setPlaybackInfo(url,title,cover,channel,id,mark) {
 	 loadings();
 	  inputUrl.value = url;
 	  updateTitle(title);
-	  play(url,title,cover,id,mark);
-	  currentChannel = channel;
+if (url.endsWith('.m3u8')) {
+    play(url, title, cover, id, mark);
+  } else {
+	let link = url;
+    playmore(link, title, cover);
+  }	  
+      currentChannel = channel;
 	  updateProgramName(currentChannel);
 	  ihId = id;
 	}
@@ -2167,57 +2176,7 @@ let app_name = null;
 		 function saveDataToLocalStorage(data) {
 			localStorage.setItem("savedData", JSON.stringify(data));
 		}
-		function playmore(link, title,cover){ 
-			const url = link;
-			const fileExtension = url.split('.').pop().toLowerCase();
-			desiredOption.selected = true;
-			if (currentHls) {
-				currentHls.destroy();
-			}
-			 if (currentRequest !== null) {
-		clearTimeout(currentRequest);
-	  }
-			if (fileExtension !== 'm3u8') {
-				stopAudio();
-				const audio = document.getElementById('video');
-				loadings();
-				updateTitle(title);
-				audio.src = url;
 
-				try {
-					const playPromise = audio.play();
-					if (playPromise !== undefined) {
-						playPromise.then(_ => {
-							document.body.classList.remove('loading');
-							if ('mediaSession' in navigator && 'MediaMetadata' in window) {
-    navigator.mediaSession.metadata = new MediaMetadata({
-        title: title,
-        artist: 'HITFM Player',
-        artwork: [{
-            src: cover,
-            sizes: '300x300',
-            type: 'image/jpg'
-        }]
-    });
-}
-						}).catch(error => {//302跳转非直链m3u8无法使用hls.js播放
-						 const notification = document.createElement('div');
-		notification.className = 'notification';
-		notification.textContent = `尝试默认播放方式`;
-		 document.body.appendChild(notification);
-		 setTimeout(() => {
-			document.body.removeChild(notification);
-		}, 1000);
-		window.openLink(title, url);
-						});
-					}
-				} catch (error) {
-		window.openLink(title, url);
-				}
-			} else {
-		   setPlaybackInfo(url, title,cover);
-			 }
-	   }
 		function attachClickEvent(imgContainer, link, title,cover) {
 		imgContainer.addEventListener("click", function () {
 		 playmore(link, title,cover);
@@ -2573,10 +2532,7 @@ const themeMode = localStorage.getItem('themeMode');
 if (themeMode === 'default') {
   localStorage.setItem("themeMode", 'light');
 }
-			   function goToWebpage() {
-	  const url = "https://space.bilibili.com/1090328045/video"
-	 window.location.href = url;
-	}
+
 			 function goToWebpage2() {
 	  const url = "https://www.acfun.cn/u/633603";
 		window.location.href = url;
@@ -2959,20 +2915,19 @@ function rgbaToHex(rgba) {
 		}
 	});
 	
-	dayjs.extend(window.dayjs_plugin_utc);
-    dayjs.extend(window.dayjs_plugin_timezone);
-    
-	function getCurrentProgram(channel) {
-    // 使用 Day.js 获取并转换时间
+dayjs.extend(window.dayjs_plugin_utc);
+dayjs.extend(window.dayjs_plugin_timezone);
+
+function getCurrentProgram(channel) {
     const currentTime = dayjs().tz('Asia/Shanghai');
-    const currentDay = currentTime.day(); // Day.js: 0: Sunday, 1: Monday, ..., 6: Saturday
+    const currentDay = currentTime.day(); // 0: 周日, 1: 周一, ..., 6: 周六
     const currentTimeString = currentTime.format('HH:mm:ss');
     
     const selectedChannelSchedule = programSchedule[channel];
     if (!selectedChannelSchedule) {
         return " ";
     }
-
+    
     let daySchedule;
     switch (currentDay) {
         case 0:
@@ -2990,13 +2945,46 @@ function rgbaToHex(rgba) {
         default:
             daySchedule = selectedChannelSchedule.TuesdayToThursday;
     }
-
-    for (const program of daySchedule) {
-        if (currentTimeString >= program.start && currentTimeString <= program.end) {
-            return program.name;
+    
+    function isDST() {
+        const year = currentTime.year();
+        
+        const dstStart = dayjs().year(year).month(2).date(1).day(0);
+        const secondSundayInMarch = dstStart.date() > 7 ? dstStart : dstStart.add(7, 'day');
+        const dstEnd = dayjs().year(year).month(10).date(1).day(0);
+        
+        return currentTime.isAfter(secondSundayInMarch.hour(2)) && 
+               currentTime.isBefore(dstEnd.hour(2));
+    }
+    
+    function adjustForDST(timeString) {
+        if (!isDST()) {
+            return timeString; 
+        }
+        
+        const [hours, minutes, seconds] = timeString.split(':').map(Number);
+        const adjustedHours = (hours - 1 + 24) % 24; 
+        return `${adjustedHours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+    }
+    
+    if (channel === 'hitfm') {
+        for (const program of daySchedule) {
+            if (currentTimeString >= program.start && currentTimeString <= program.end) {
+                return program.name;
+            }
+        }
+    } else {
+        const adjustedCurrentTimeString = isDST() ? 
+            adjustForDST(currentTimeString) : 
+            currentTimeString;
+        
+        for (const program of daySchedule) {
+            if (adjustedCurrentTimeString >= program.start && adjustedCurrentTimeString <= program.end) {
+                return program.name;
+            }
         }
     }
-
+    
     return " ";
 }
 function openSongList() {
@@ -3061,36 +3049,18 @@ function showNewPage(page) {
 }
 
 function updatePaginationIndicator(pageNum) {
-    const paginationLine = document.querySelector('.pagination-line');
-    if (pageNum === 2) {
-        paginationLine.classList.add('page-two');
-    } else {
-        paginationLine.classList.remove('page-two');
-    }
+    // 这个函数现在由 radioManager.js 处理
+    return;
 }
 
 function initPagination() {
-    const paginationLine = document.querySelector('.pagination-line');
-    paginationLine.addEventListener('click', function(event) {
-        const clickPosition = event.offsetX;
-        const lineWidth = this.offsetWidth;
-        if (clickPosition < lineWidth / 2) {
-            changePage(1);
-        } else {
-            changePage(2);
-        }
-    });
+    // 这个函数现在由 radioManager.js 处理
+    return;
 }
 
 function updatePaginationButtons(activePageNum) {
-    const buttons = document.querySelectorAll('.pagination button');
-    buttons.forEach((button, index) => {
-        if (index + 1 === activePageNum) {
-            button.classList.add('active');
-        } else {
-            button.classList.remove('active');
-        }
-    });
+    // 这个函数现在由 radioManager.js 处理
+    return;
 }
 
 function updateProgramName(channel) {
@@ -3107,24 +3077,6 @@ function updateProgramName(channel) {
 updateProgramName(currentChannel);
 setInterval(() => updateProgramName(currentChannel), 60000);
 	  
-	document.getElementById('top20').addEventListener('click', function () {
-	  if (!hasFetched) {
-		clearAudio();
-		  fetchmusic('https://api.i-meto.com/meting/api?server=netease&type=playlist&id=6705531149');
-	  }
-	  removeDynamicButton();
-	  createDynamicButton('https://music.163.com/#/playlist?id=6705531149');
-	  setTimeout(function () {
-		const playlistElement = document.querySelector('.yAudio-playlist');
-		if (playlistElement) {
-		  var newParagraph = document.createElement('p');
-		  newParagraph.innerText = 'Hit FM Top 20 Countdown';
-		  newParagraph.style.fontSize = '18px';
-		  playlistElement.innerHTML = '';
-		  playlistElement.appendChild(newParagraph);
-		}
-	  }, 4000);
-	});
 
 	document.getElementById('at40').addEventListener('click', function () {
 	  if (!hasFetched2) {
@@ -3145,7 +3097,6 @@ setInterval(() => updateProgramName(currentChannel), 60000);
 	  }, 4000);
 	});
 
-	let hasFetched = false;
 	let hasFetched2 = false;
 
 	function fetchmusic(url) {
@@ -3168,7 +3119,6 @@ setInterval(() => updateProgramName(currentChannel), 60000);
 	  while (yAudioElement.firstChild) {
 		yAudioElement.removeChild(yAudioElement.firstChild);
 	  }
-	  hasFetched = false;
 	  hasFetched2 = false;
 	}
 	function createDynamicButton(playlistUrl) {
@@ -3250,4 +3200,3 @@ function updateCountdown() {
   const remainingTime = parseInt(timeInput.value * 60 - (Date.now() - countdownStart) / 1000);
   countdown.innerHTML = `剩余时间: ${remainingTime} 秒`;
 }
-

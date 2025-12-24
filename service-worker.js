@@ -1,9 +1,9 @@
 importScripts('https://cdnjs.cloudflare.com/ajax/libs/workbox-sw/7.0.0/workbox-sw.min.js');
 
 const versions = {
-    images: 'v0.53',
-    js: 'v0.72',
-    css: 'v0.60'
+    images: 'v0.55',
+    js: 'v0.73',
+    css: 'v0.62'
 };
 
 if (workbox) {
@@ -23,7 +23,7 @@ if (workbox) {
         })
     );
 
-    workbox.routing.registerRoute(
+   // workbox.routing.registerRoute(
         ({request}) => request.destination === 'script',
         new workbox.strategies.CacheFirst({
             cacheName: `js-cache-${versions.js}`,
@@ -39,7 +39,7 @@ if (workbox) {
         })
     );
 
-    workbox.routing.registerRoute(
+   // workbox.routing.registerRoute(
         ({request}) => request.destination === 'style',
         new workbox.strategies.CacheFirst({
             cacheName: `css-cache-${versions.css}`,
@@ -75,4 +75,3 @@ self.addEventListener('activate', event => {
         })
     );
 });
-

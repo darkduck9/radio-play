@@ -1,0 +1,236 @@
+.radio-container {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+}
+
+.rpage {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    transition: opacity 0.3s ease-out, transform 0.3s ease-out;
+    will-change: opacity, transform;
+}
+
+.rpage.active {
+    z-index: 1;
+}
+
+.rpage.inactive {
+    z-index: 0;
+}
+
+/* 确保 Sortable 的拖拽元素动画不受影响 */
+.radio-grid .sortable-ghost {
+    transition: transform 0.2s ease-out !important;
+}
+
+.radio-grid .sortable-chosen {
+    transition: transform 0.2s ease-out !important;
+}
+
+.pagination {
+    position: absolute;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 2;
+}
+
+.pagination-line {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    justify-content: center;
+}
+
+.pagination-dot {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.3);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.3s ease-out;
+}
+
+.pagination-dot:hover {
+    background: rgba(255, 255, 255, 0.5);
+}
+
+.pagination-dot.active {
+    background: #fff;
+    color: #000;
+    transform: scale(1.1);
+}
+
+.pagination-text {
+    color: #fff;
+    font-size: 14px;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+/* 右键菜单样式 */
+.context-menu {
+    position: fixed;
+    background: rgba(0, 0, 0, 0.9);
+    border-radius: 8px;
+    padding: 8px 0;
+    min-width: 150px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+    z-index: 1000;
+}
+
+.context-menu-item {
+    padding: 8px 16px;
+    color: #fff;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.context-menu-item:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+/* 排序界面样式 */
+.sorting-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.8);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.sorting-container {
+    background: #1a1a1a;
+    border-radius: 12px;
+    width: 90%;
+    max-width: 800px;
+    max-height: 90vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.sorting-header {
+    padding: 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.sorting-header h2 {
+    color: #fff;
+    margin: 0;
+    font-size: 1.5em;
+}
+
+.close-btn {
+    background: none;
+    border: none;
+    color: #fff;
+    font-size: 24px;
+    cursor: pointer;
+    padding: 0;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    transition: background-color 0.2s;
+}
+
+.close-btn:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+.sorting-grid {
+    padding: 16px;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    gap: 16px;
+    overflow-y: auto;
+    max-height: calc(90vh - 140px);
+}
+
+.sorting-station {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 8px;
+    padding: 12px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    cursor: move;
+    transition: transform 0.2s, background-color 0.2s;
+}
+
+.sorting-station:hover {
+    background: rgba(255, 255, 255, 0.1);
+    transform: translateY(-2px);
+}
+
+.sorting-station img {
+    width: 48px;
+    height: 48px;
+    object-fit: contain;
+}
+
+.sorting-station span {
+    color: #fff;
+    font-size: 0.9em;
+    text-align: center;
+    word-break: break-word;
+}
+
+.sorting-ghost {
+    opacity: 0.5;
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.sorting-footer {
+    padding: 16px;
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.sorting-footer button {
+    padding: 8px 24px;
+    border-radius: 6px;
+    border: none;
+    font-size: 1em;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.save-btn {
+    background: #4CAF50;
+    color: white;
+}
+
+.save-btn:hover {
+    background: #45a049;
+}
+
+.cancel-btn {
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
+}
+
+.cancel-btn:hover {
+    background: rgba(255, 255, 255, 0.2);
+} 

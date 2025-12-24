@@ -238,16 +238,15 @@ font-size: 15vw;
     max-width: 90%; 
     min-width: 30%; 
 }
-
 .song-cover {
     flex-shrink: 0;
     width: 50px;
     height: 50px;
     border-radius: 8px;
-    background-size: cover;
+    background-size: contain;
     background-position: center;
+    background-repeat: no-repeat; 
 }
-
 .song-details {
     flex-grow: 1;
     display: flex;
@@ -627,6 +626,7 @@ input[type="range"].volume-level::-webkit-slider-thumb {filter: none !important;
     z-index: 9999;
     display: flex; 
     justify-content: space-between;
+    align-items: center;
 }
 
 .show {
@@ -990,7 +990,6 @@ width: 70%;}
 
 .radio-button {width:100%;
   background-color: transparent;
-  border: 1px solid  #e0e0e0;
   border-radius: 10px;
   padding: 5px;
   text-align: center;
@@ -1004,6 +1003,20 @@ width: 70%;}
   position: relative;
   overflow: hidden;
 }
+.radio-button {
+  transition: transform 360ms cubic-bezier(0.2,0.8,0.2,1), box-shadow 360ms cubic-bezier(0.2,0.8,0.2,1), background-color 360ms;
+  transform: translateZ(0);
+  will-change: transform, box-shadow;
+  border-radius: 10px;
+  position: relative;
+  overflow: hidden;
+}
+
+.radio-button:hover .radio-icon,
+.radio-button:focus .radio-icon {
+  transform: scale(1.08);
+}
+
 .radio-button::before {
   content: '';
   position: absolute;
@@ -1046,7 +1059,51 @@ width: 70%;}
   font-weight: bold;
   margin-top: 10px;
 }
+.radio-container {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
 
+
+
+.pagination-line {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  justify-content: center;
+}
+
+.pagination-dot {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.3);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.3s ease-out;
+}
+
+.pagination-dot:hover {
+  background: rgba(255, 255, 255, 0.5);
+}
+
+.pagination-dot.active {
+  background: #fff;
+  color: #000;
+  transform: scale(1.1);
+}
+
+.pagination-text {
+  color: #fff;
+  font-size: 14px;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+} 
 .rpage {
     display: block;
     opacity: 1;
@@ -1077,37 +1134,108 @@ width: 70%;}
 }
 
 .pagination {
-  text-align: center;
-  margin-top: 0px;
-  margin-bottom: 10px;
+    width: 100%;
+    padding: 16px 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
 
 .pagination-line {
-  width: 100px;
-  height: 4px;
-  background-color: #e0e0e0;
-  border-radius: 2px;
-  position: relative;
-  margin: 0 auto;
-  cursor: pointer;
+    display: flex;
+    gap: 12px;
+    padding: 8px 16px;
+    background: var(--surface-container-low, rgba(255, 255, 255, 0.05));
+    border-radius: 28px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
 }
 
-.pagination-indicator {
-  position: absolute;
-  left: 0;
-  top: 0;
-  height: 100%;
-  width: 50%;
-  background-color: var(--main-color);
-  border-radius: 2px;
-  transition: all 0.3s ease;
+.pagination-line:hover {
+    background: var(--surface-container, rgba(255, 255, 255, 0.08));
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
 }
 
-.pagination-line.page-two .pagination-indicator {
-  left: 50%;
+.pagination-dot {
+    width: 32px;
+    height: 32px;
+    border-radius: 16px;
+    background: transparent;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--on-surface-variant, rgba(255, 255, 255, 0.7));
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
 }
+
+.pagination-dot::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: var(--primary-container, rgba(255, 255, 255, 0.12));
+    border-radius: 16px;
+    transform: scale(0);
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.pagination-dot:hover::before {
+    transform: scale(1);
+}
+
+.pagination-dot.active {
+    color: var(--on-primary-container, #fff);
+    background: var(--main-color);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.pagination-dot.active::before {
+    display: none;
+}
+
+/* 暗色模式适配 */
+@media (prefers-color-scheme: dark) {
+    .pagination-line {
+        background: var(--surface-container-low, rgba(255, 255, 255, 0.05));
+    }
+    
+    .pagination-line:hover {
+        background: var(--surface-container, rgba(255, 255, 255, 0.08));
+    }
+    
+    .pagination-dot {
+        color: var(--on-surface-variant, rgba(255, 255, 255, 0.7));
+    }
+    
+    .pagination-dot.active {
+        color: var(--on-primary-container, #fff);
+background: var(--main-color);    }
+}
+
+/* 亮色模式下分页数字适配（不影响暗色模式） */
+body:not(.dark) .pagination-dot {
+  color: rgba(0, 0, 0, 0.8);
+}
+body:not(.dark) .pagination-dot:hover {
+  color: rgba(0, 0, 0, 0.95);
+}
+body:not(.dark) .pagination-dot.active {
+  color: #ffffff; /* 在激活状态下使用白色文本以保证对比 */
+background: var(--main-color);  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.12);
+}
+/* 保留基于 prefers-color-scheme: dark 的原有规则，不会被上述覆盖 */
+@media (prefers-color-scheme: light) {
+  .pagination-line {
+    background: rgba(0, 0, 0, 0.04);
+  }
+}
+
 .link-button {
-  width: 80px;
+  width: 120px;
   height: 40px;
   position: relative;
   overflow: hidden;
@@ -1809,4 +1937,9 @@ overflow-y: auto;
   100% {
     opacity: 1;
   }
+}
+
+.sortable-ghost {
+    opacity: 0.5;
+    background: #c8ebfb;
 }

@@ -12,7 +12,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/hls.js/1.5.14/hls.min.js" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/hls.js/1.6.9/hls.min.js" crossorigin="anonymous"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/1.7.0/axios.min.js" crossorigin="anonymous"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/workbox-sw/7.0.0/workbox-sw.min.js" crossorigin="anonymous"></script>
 <script src="https://unpkg.com/dayjs@1.11.11/dayjs.min.js" crossorigin="anonymous"></script>
@@ -61,7 +61,7 @@ stroke-width: 2px;}</style></defs><rect class="cls-1" x="1" y="1" width="24" hei
     <div class="input-boxLine">
         <input id="inputUrl" type="text" required />
         <div class="line"></div>
-        <span id="textToEdit">WE PLAY ONLY THE HITS</span>
+        <span id="textToEdit">NEVER STOP THE BEAT</span>
         <div class="button-group">
             <button class="playBut" onclick="cplay()">
                 <svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:a="http://ns.adobe.com/AdobeSVGViewerExtensions/3.0/" x="0px" y="0px" width="40px" height="40px" viewBox="0 0 213.7 213.7" enable-background="new 0 0 213.7 213.7" xml:space="preserve">
@@ -83,98 +83,9 @@ stroke-width: 2px;}</style></defs><rect class="cls-1" x="1" y="1" width="24" hei
 </div>
 
 <div id="radio-container">
-  <div id="rpage1" class="rpage active">
-    <div class="radio-grid">
-      <div class="radio-button" onclick="playHitFM1()" data-image="./icons/hitfmany.png">
-        <div class="radio-icon"></div>
-        <span class="radio-name">Hit FM 官网</span>
-      </div>
-      <div class="radio-button" onclick="playHitFM3()" data-image="./icons/hitfmany.png">
-        <div class="radio-icon"></div>
-        <span class="radio-name">Hit FM 北京</span>
-        </div>  
-       <div class="radio-button" onclick="playhitn()" data-image="./icons/hitn.webp">
-        <div class="radio-icon"></div>
-        <span class="radio-name">Hit Nation</span>
-        </div>
-      <div class="radio-button" onclick="playev()" data-image="./icons/evo.webp">
-        <div class="radio-icon"></div>
-        <span class="radio-name">Evolution</span>
-      </div>
-      <div class="radio-button" onclick="playAT40()" data-image="./icons/at40.svg">
-        <div class="radio-icon"></div>
-        <span class="radio-name">AT40</span>
-      </div>
-      <div class="radio-button" onclick="playwgc()" data-image="./icons/wgc.webp">
-        <div class="radio-icon"></div>
-        <span class="radio-name">107.5 WGCI</span>
-      </div> 
-              <div class="radio-button" onclick="playic()" data-image="./icons/ic.webp">
-        <div class="radio-icon"></div>
-        <span class="radio-name">iHeartCountry</span>
-      </div>
-      <div class="radio-button" onclick="playip()" data-image="./icons/ip.webp">
-        <div class="radio-icon"></div>
-        <span class="radio-name">iHeartRadio POP</span>
-      </div>
-     <div class="radio-button" onclick="playimf()" data-image="./icons/imf.webp">
-        <div class="radio-icon"></div>
-        <span class="radio-name">iHeartRadio Music Festival</span>
-      </div>  
-      <!-- 添加其他按钮，格式类似 -->
-    </div>
-  </div>
-  
-  <div id="rpage2" class="rpage">
-    <div class="radio-grid">
-      <div class="radio-button" onclick="playZ100()" data-image="./icons/z100.webp">
-        <div class="radio-icon"></div>
-        <span class="radio-name">Z100</span>
-      </div>
-           <div class="radio-button" onclick="playkiis()" data-image="./icons/kiis.webp">
-        <div class="radio-icon"></div>
-        <span class="radio-name">102.7 KIIS-FM</span>
-      </div> 
-          <div class="radio-button" onclick="playalic()" data-image="./icons/alic.webp">
-        <div class="radio-icon"></div>
-        <span class="radio-name">Alice 95.5</span>
-      </div>   
-    
-         <div class="radio-button" onclick="playrn()" data-image="./icons/rn.webp">
-        <div class="radio-icon"></div>
-        <span class="radio-name">Rock Nation</span>
-      </div>
-           <div class="radio-button" onclick="playmxn()" data-image="./icons/mixn.webp">
-        <div class="radio-icon"></div>
-        <span class="radio-name">Mix Nation</span>
-      </div> 
-            <div class="radio-button" onclick="playbbc1()" data-image="./icons/bbc1.svg">
-        <div class="radio-icon"></div>
-        <span class="radio-name">BBC Radio 1</span>
-      </div>
-           <div class="radio-button" onclick="playbbc1x()" data-image="./icons/bbc1x.svg">
-        <div class="radio-icon"></div>
-        <span class="radio-name">BBC Radio 1Xtra</span>
-      </div> 
-      <div class="radio-button" onclick="playbbc1d()" data-image="./icons/bbc1d.svg">
-        <div class="radio-icon"></div>
-        <span class="radio-name">BBC Radio 1 Dance</span>
-      </div>
-          <div class="radio-button" onclick="playbbc6()" data-image="./icons/bbc6.svg">
-        <div class="radio-icon"></div>
-        <span class="radio-name">BBC Radio 6 Music</span>
-      </div>
-      <!-- 添加其他按钮，格式类似 -->
-    </div></div>
-    
- 
+  <!-- 动态内容将由 radioManager.js 生成 -->
 </div>
 
-<div class="pagination">
-  <div class="pagination-line">
-    <div class="pagination-indicator"></div>
-  </div>
-</div>
      <div id="recordedTime"></div>
      <div id="programName">Loading...长时间看到此消息则表示浏览器不支持</div>
 <div class="player-container">
@@ -182,9 +93,7 @@ stroke-width: 2px;}</style></defs><rect class="cls-1" x="1" y="1" width="24" hei
 </div>
 <div id="content-container">       
        <div class="player">
-       <button class="link-button" onclick="goToWebpage()" role="button"><span class="text">HitFMLive</span><span>Bilibili</span></button>
-       <button class="link-button" id="top20" role="button"><span class="text">TOP 20</span><span>网易云</span></button>
-       <button class="link-button" onclick="goToWebpage2()" role="button"><span class="text">TOP MV</span><span>Acfun</span></button>
+      <button class="link-button" onclick="goToWebpage2()" role="button"><span class="text">往期TOP20 MV</span><span>Acfun</span></button>
        <button class="link-button" id="at40" role="button"><span class="text">AT 40</span><span>网易云</span></button>
        </div> 
          </div>
@@ -262,8 +171,8 @@ stroke-width: 2px;}</style></defs><rect class="cls-1" x="1" y="1" width="24" hei
     </div>
      <div class="page about">
      <p class="t"><a href="https://hitfm.pp.ua">hitfm.pp.ua</a><br> 自定义数据及添加的电台数据使用本地存储 <br>备份的数据包括1.自定义设置<br>和2.添加到主页的电台数据</p><hr><p class="t">自定义电台<br>部分电台有地域限制或ipv6<br>国外电台使用代理更流畅<br>部分浏览器安全限制，'不能'<br>在https下访问http的内容。解决方法<br>1.把http改为https<br>(部分链接只支持http，注意关闭浏览器的<br>http自动升级为https功能）或在本地打开
-</p><hr><p class="t">报错的链接会使用默认方式打开<br>若使用新标签页，电脑浏览器需要安装<br>hls播放扩展插件：<br><a href="https://chrome.google.com/webstore/detail/native-mpeg-dash-%2B-hls-pl/cjfbmleiaobegagekpmlhmaadepdeedn">chrome</a>/<a href="https://addons.mozilla.org/en-US/firefox/addon/native-mpeg-dash-hls-playback/">mozilla</a> addons<br>专业播放器调用，<br>参考<a href="https://greasyfork.org/zh-CN/scripts/518677-external-player">这脚本</a>设置URL Scheme</p><hr><p class="t">直播源使用m3u格式<br>比如项目: <a href="https://m3u.ibert.me/">iptv-sources
-</a><br>播放源1<a href="https://raw.githubusercontent.com/YueChan/Live/refs/heads/main/APTV.m3u">@YueChan</a><br>播放源2<a href="https://m3u.ibert.me/y_g.m3u">@YanG-1989</a><br>播放源3(地方台):<a href="https://huangsuming.github.io/iptv/list/tvlist.txt">@huangsuming</a><br>推荐播放源4<a href="https://raw.githubusercontent.com/suxuang/myIPTV/main/ipv6.m3u">@suxuang</a><br>广播网站:<a href="https://cooltv.top">@goolguy007</a></p><hr> <p class="t">yAudio音频播放器来自<a href="https://github.com/ZHOUYUANN/yAudio" > @ZHOUYUANN </a></p>
+</p><hr><p class="t">报错的链接会使用默认方式打开<br>若使用新标签页，电脑浏览器需要安装<br>hls播放扩展插件：<br><a href="https://chrome.google.com/webstore/detail/native-mpeg-dash-%2B-hls-pl/cjfbmleiaobegagekpmlhmaadepdeedn">chrome</a>/<a href="https://addons.mozilla.org/en-US/firefox/addon/native-mpeg-dash-hls-playback/">mozilla</a> addons<br>专业播放器调用，<br>参考<a href="https://greasyfork.org/zh-CN/scripts/518677-external-player">这脚本</a>设置URL Scheme</p><hr><p class="t">直播源使用m3u格式<br>比如项目: <a href="https://m3u.ibert.me/">iptv-sources</a>
+<br>播放源(地方台):<a href="https://huangsuming.github.io/iptv/list/tvlist.txt">@huangsuming</a><br>推荐播放源2<a href="https://raw.githubusercontent.com/suxuang/myIPTV/main/ipv4.m3u">@suxuang</a><br>广播网站:<a href="https://cooltv.top">@goolguy007</a></p><hr> <p class="t">yAudio音频播放器来自<a href="https://github.com/ZHOUYUANN/yAudio" > @ZHOUYUANN </a></p>
         <button id="about-btn">关于</button>
     </div>
 </div>
@@ -382,5 +291,6 @@ stroke-width: 2px;}</style></defs><rect class="cls-1" x="1" y="1" width="24" hei
         </div>
        </div>
 </div><script src="script.js"></script> 
+<script type="module" src="radioManager.js"></script>
 </body>
 </html>
