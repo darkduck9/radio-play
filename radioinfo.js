@@ -24,7 +24,7 @@ const defaultRadioStations = [
         name: "2DayFM",
         icon: "./icons/2Day.png",
         params: {
-            url: "https://wz2liw.scahw.com.au/live/2day_128.stream/playlist.m3u8",
+            url: "https://sa46.scastream.com.au/live/2day_128.stream/playlist.m3u8",
             title: "2DayFM",
             cover: "./icons/2Day.png",
             channel: "2DayFM",
