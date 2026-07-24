@@ -443,15 +443,7 @@ function updateMediaMetadata() {
 	  spotifyLink.style.userSelect = 'none';
 	  spotifyLink.innerHTML = '<img src="./icons/spotify.svg" alt="spotify Logo">';
 	  info.appendChild(spotifyLink);
-	   const dlLink = document.createElement('a');
-	  dlLink.className = 'playlist_item__dl';
-	  dlLink.target = '_blank'; 
-      let baURL = "https://yym4.com/search/";
-      let fiURL = baURL + encodeURIComponent(removeSymbols(data['song'] + ' ' + data['singer']));
-	  dlLink.href = fiURL;
-	  dlLink.style.userSelect = 'none';
-	  dlLink.innerHTML = '<img src="./icons/dl.svg" alt="dl Logo">';
-	  info.appendChild(dlLink);
+	   
 		}
 		return result;
 	}
@@ -476,6 +468,8 @@ let lastTpid = null;
 let currentUpdateTimer = null;
 let isCurrentlyPolling = false;
 let CurrentlyPolling = false;
+
+
 async function fetchAndUpdateTrackInfo(id, cover, songInfoDiv) { 
     if (!isCurrentlyPolling) {
         return;
@@ -491,7 +485,6 @@ async function fetchAndUpdateTrackInfo(id, cover, songInfoDiv) {
             }
 
             const trackData = await response.json();
-            
             updateSongInfo(songInfoDiv, {
                 title: trackData.title || '',
                 artist: trackData.artist || '',
@@ -590,6 +583,8 @@ function scheduleBBCRetry(id, cover, songInfoDiv, interval = 30) {
         fetchBBCTrackInfo(id, cover, songInfoDiv);
     }, interval * 1000);
 }
+
+
 function innerInfo(data, cover, songInfoDiv) {
     if (!data || data.frag.title.includes("adContext") || data.frag.title.includes("text=\"")) {
         return;
@@ -603,25 +598,24 @@ function innerInfo(data, cover, songInfoDiv) {
         });
         return;
     }
+ 
+const titleMatch = data.frag.title.match(/title="([^"]*)"/);
+const artistMatch = data.frag.title.match(/artist="([^"]*)"/);
+const tpid = extractTPID(data.frag.title);
 
-    const titleMatch = data.frag.title.match(/title="([^"]*)"/);
-    const artistMatch = data.frag.title.match(/artist="([^"]*)"/);
-    const tpid = extractTPID(data.frag.title);
+if (!tpid || tpid === "0") {
+    handleNonTPIDSong(titleMatch, artistMatch, cover, songInfoDiv);
+    return;
+}
 
-    if (!tpid || tpid === "0") {
-        handleNonTPIDSong(titleMatch, artistMatch, cover, songInfoDiv);
-        return;
-    }
-
-    if (lastTpid !== tpid) {
-        handleTPIDSong(tpid, titleMatch, artistMatch, cover, songInfoDiv);
-    }
+if (lastTpid !== tpid) {
+    handleTPIDSong(tpid, titleMatch, artistMatch, cover, songInfoDiv);
 }
 
 function extractTPID(title) {
     const tpidPart = title.split('TPID=')[1];
     if (!tpidPart) return null;
-    
+
     const numbersOnly = tpidPart.match(/\d+/);
     return numbersOnly ? numbersOnly[0] : null;
 }
@@ -635,10 +629,12 @@ function handleNonTPIDSong(titleMatch, artistMatch, cover, songInfoDiv) {
         return;
     }
 
+    // 非 TPID 内容,没有 tpid,显式传 null
     updateSongInfo(songInfoDiv, {
         title: programInfo,
         artist: artistInfo,
-        cover
+        cover,
+        tpid: null
     });
 }
 
@@ -646,15 +642,18 @@ function handleTPIDSong(tpid, titleMatch, artistMatch, cover, songInfoDiv) {
     lastTpid = tpid;
     const title = titleMatch?.[1].trim() || '';
     const artist = artistMatch?.[1].trim() || '';
-    
-    updateSongInfo(songInfoDiv, { title, artist, cover });
+
+    // 有 tpid,正常传入
+    updateSongInfo(songInfoDiv, { title, artist, cover, tpid });
 
     if (useApiInfo) {
-        apiInfo(tpid, songInfoDiv, { title, artist, cover });
+        apiInfo(tpid, songInfoDiv, { title, artist, cover, tpid });
     }
 }
+}
 
-function updateSongInfo(songInfoDiv, { title, artist, cover }) {
+
+function updateSongInfo(songInfoDiv, { title, artist, cover, tpid }) {
     songInfoDiv.innerHTML = '';
     songInfoDiv.style.display = 'flex';
 
@@ -673,12 +672,62 @@ function updateSongInfo(songInfoDiv, { title, artist, cover }) {
 
     songInfoDiv.appendChild(coverElement);
     songInfoDiv.appendChild(detailsContainer);
-  let songtext = textElement.textContent;
-    addLinksToSongInfo(songtext, detailsContainer);
+
+    let songtext = textElement.textContent;
+    addLinksToSongInfo(songtext, detailsContainer, tpid, cover);
     updateMediaSession(title, artist || "HITFM Player", cover);
 }
 
-function addLinksToSongInfo(songtext, detailsContainer) {
+function openLyricsModal(tpid, songtext, cover) {
+    if (document.getElementById('lyrics-modal-overlay')) return;
+
+    let isClosing = false; // 防止重复关闭
+
+    const overlay = document.createElement('div');
+    overlay.id = 'lyrics-modal-overlay';
+    overlay.className = 'lyrics-modal-overlay';
+
+    const modal = document.createElement('div');
+    modal.className = 'lyrics-modal';
+
+    const closeBtn = document.createElement('button');
+    closeBtn.className = 'lyrics-modal-close';
+    closeBtn.setAttribute('aria-label', '关闭');
+    closeBtn.innerHTML = '&times;';
+
+    const iframe = document.createElement('iframe');
+    iframe.className = 'lyrics-modal-iframe';
+    iframe.src = `./lyrics.html?trackId=${encodeURIComponent(tpid)}&song=${encodeURIComponent(songtext)}&cover=${encodeURIComponent(cover || '')}`;
+
+    modal.appendChild(closeBtn);
+    modal.appendChild(iframe);
+    overlay.appendChild(modal);
+    document.body.appendChild(overlay);
+
+    function closeModal() {
+        if (isClosing) return; 
+        isClosing = true;
+
+        iframe.src = 'about:blank';
+
+        requestAnimationFrame(() => {
+            overlay.remove();
+        });
+
+        document.removeEventListener('keydown', onKeydown);
+    }
+
+    function onKeydown(e) {
+        if (e.key === 'Escape') closeModal();
+    }
+
+    closeBtn.addEventListener('click', closeModal);
+    overlay.addEventListener('click', (e) => {
+        if (e.target === overlay) closeModal();
+    });
+    document.addEventListener('keydown', onKeydown);
+}
+function addLinksToSongInfo(songtext, detailsContainer, tpid,cover) {
     const linksContainer = document.createElement('div');
     linksContainer.className = 'links-container';
 
@@ -705,25 +754,36 @@ function addLinksToSongInfo(songtext, detailsContainer) {
             icon: './icons/spotify.svg',
             alt: 'Spotify Logo'
         },
-        {
-            class: 'playlist_item__dlo',
-            url: `https://yym4.com/search/${encodeURIComponent(songtext.replace(/\//g, ''))}`,
-            icon: './icons/dl.svg',
-            alt: 'dl Logo'
-        }
+        ...(tpid ? [{
+            class: 'playlist_item__lrc',
+            url: `https://us.api.iheart.com/api/v3/catalog/tracks/lyrics?trackId=${tpid}`,
+            icon: './icons/lyrics.png',
+            alt: 'Lyrics Logo',
+            isLyrics: true
+        }] : [])
     ];
 
     links.forEach(link => {
         const anchor = document.createElement('a');
         anchor.className = `music-link ${link.class}`;
-        anchor.target = '_blank';
         anchor.href = link.url;
         anchor.innerHTML = `<img src="${link.icon}" alt="${link.alt}">`;
+
+        if (link.isLyrics) {
+    anchor.addEventListener('click', (e) => {
+        e.preventDefault();
+        openLyricsModal(tpid, songtext, cover); 
+    });
+} else {
+            anchor.target = '_blank';
+        }
+
         linksContainer.appendChild(anchor);
     });
 
     detailsContainer.appendChild(linksContainer);
 }
+
 
 async function apiInfo(trackId, songInfoDiv, fallbackInfo) {
     try {
@@ -739,7 +799,8 @@ async function apiInfo(trackId, songInfoDiv, fallbackInfo) {
         const songData = {
             title: track.title || fallbackInfo.title,
             artist: track.artist || fallbackInfo.artist,
-            cover: track.imagePath || fallbackInfo.cover
+            cover: track.imagePath || fallbackInfo.cover,
+			tpid: trackId
         };
         updateSongInfo(songInfoDiv, songData);
         
@@ -766,6 +827,38 @@ function updateMediaSession(title, artist, cover) {
   }
 }
 
+let pendingMetaTimers = [];
+
+function clearPendingMeta() {
+    pendingMetaTimers.forEach(t => clearTimeout(t));
+    pendingMetaTimers = [];
+}
+
+function scheduleMetaDisplay(data, cover, songInfoDiv) {
+    data.samples.forEach(sample => {
+        const pts = sample.pts; // 单位:秒,与 video.currentTime 同一时间轴
+        if (typeof pts !== 'number' || isNaN(pts)) {
+            innerInfo(data, cover, songInfoDiv);
+            return;
+        }
+
+        const delaySec = pts - video.currentTime;
+        const delayMs = delaySec * 1000;
+
+        if (delayMs > 60000) return;
+        if (delayMs <= 0) {
+            innerInfo(data, cover, songInfoDiv);
+            return;
+        }
+
+        const timer = setTimeout(() => {
+            innerInfo(data, cover, songInfoDiv);
+            pendingMetaTimers = pendingMetaTimers.filter(t => t !== timer);
+        }, delayMs);
+
+        pendingMetaTimers.push(timer);
+    });
+}
 function play(url,title,cover,id,mark) {
   loadings();
   if (url && cover && 'mediaSession' in navigator && 'MediaMetadata' in window) {
@@ -779,6 +872,7 @@ function play(url,title,cover,id,mark) {
       }]
     });
   }
+ 
   const songInfoDiv = document.getElementById('songInfo');
   songInfoDiv.style.display = 'none';
   desiredOption.selected = true;
@@ -796,22 +890,25 @@ function play(url,title,cover,id,mark) {
     currentHls = hls;
     hls.loadSource(url);
     hls.attachMedia(video);
-
-   if (mark === 2 && useApiInfo) {
-        isCurrentlyPolling = true;
-        fetchAndUpdateTrackInfo(id, cover, songInfoDiv);
-    } else if (mark === 3 && useApiInfo) {
-         CurrentlyPolling = true;
-        fetchBBCTrackInfo(id, cover, songInfoDiv);
-    } else {
-        hls.on(Hls.Events.FRAG_PARSING_METADATA, (event, data) => {
-            innerInfo(data, cover, songInfoDiv);
-        });
-    }
-    hls.on(Hls.Events.MANIFEST_PARSED, function () {
-      video.play();
+if (mark === 2 && useApiInfo) {
+    isCurrentlyPolling = true;
+    fetchAndUpdateTrackInfo(id, cover, songInfoDiv);
+} else if (mark === 3 && useApiInfo) {
+    CurrentlyPolling = true;
+    fetchBBCTrackInfo(id, cover, songInfoDiv);
+} else {
+    hls.on(Hls.Events.FRAG_PARSING_METADATA, (event, data) => {
+        scheduleMetaDisplay(data, cover, songInfoDiv);
     });
+}
 
+hls.on(Hls.Events.MANIFEST_PARSED, function () {
+    video.play();
+});
+
+// 发生 seek / 缓冲跳变 / 切换清晰度等情况时,清掉旧的定时器,防止错位显示
+video.addEventListener('seeking', clearPendingMeta);
+hls.on(Hls.Events.LEVEL_SWITCHED, clearPendingMeta);
 function isIgnorableError(errorDetails) {
   const ignorableErrors = [
     Hls.ErrorDetails.BUFFER_APPEND_ERROR,
@@ -832,7 +929,7 @@ hls.on(Hls.Events.ERROR, function (event, data) {
     switch (data.type) {
       case Hls.ErrorTypes.NETWORK_ERROR:
         console.error('Network error occurred');
-        handleUnrecoverableError(` (${data.details})，尝试默认方式`);
+      handleNetworkError(data.details); 
         break;
       default:
         console.error(`An unrecoverable error (${data.details}) occurred, stopping load`);
@@ -893,7 +990,6 @@ function showNotification(message) {
     alert('只有m3u8能触发播放，其他格式需要在自定义电台创建按钮播放');
   }
 }
-
 	function cplay() {
 			const url = inputUrl.value;
 			 play(url);
