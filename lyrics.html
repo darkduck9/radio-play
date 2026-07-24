@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>歌词</title>
+<style>
+    * { box-sizing: border-box; }
+
+    html, body {
+        margin: 0;
+        padding: 0;
+        height: 100%;
+        background: #000;
+        font-family: "Circular Std", "Helvetica Neue", -apple-system, "Segoe UI", "Microsoft YaHei", sans-serif;
+        overflow: hidden;
+    }
+
+   .bg {
+    position: fixed;
+    inset: -5%;
+    background-size: cover;
+    background-position: center;
+    filter: brightness(0.45) saturate(1.2);
+    transform: scale(1.05); 
+    z-index: 0;
+    will-change: auto; 
+}
+
+    .overlay-gradient {
+        position: fixed;
+        inset: 0;
+        background: linear-gradient(180deg, rgba(0,0,0,0.35) 0%, rgba(0,0,0,0.75) 55%, rgba(0,0,0,0.95) 100%);
+        z-index: 1;
+    }
+
+    .container {
+        position: relative;
+        z-index: 2;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .header {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        padding: 20px 24px 16px;
+        flex-shrink: 0;
+    }
+
+    .header img {
+        width: 48px;
+        height: 48px;
+        border-radius: 6px;
+        object-fit: cover;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+    }
+
+    .header-text {
+        color: #fff;
+        overflow: hidden;
+    }
+
+    .header-text .song-name {
+        font-size: 15px;
+        font-weight: 700;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .header-text .label {
+        font-size: 11px;
+        color: rgba(255,255,255,0.55);
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        margin-top: 2px;
+    }
+
+    .lyrics-scroll {
+        flex: 1;
+        overflow-y: auto;
+        padding: 8px 28px 40px;
+        scrollbar-width: thin;
+        scrollbar-color: rgba(255,255,255,0.2) transparent;
+    }
+
+    .lyrics-scroll::-webkit-scrollbar {
+        width: 6px;
+    }
+    .lyrics-scroll::-webkit-scrollbar-thumb {
+        background: rgba(255,255,255,0.2);
+        border-radius: 3px;
+    }
+
+    .lyrics-block {
+        margin-bottom: 28px;
+    }
+
+    .lyrics-line {
+        color: rgba(255,255,255,0.55);
+        font-size: 22px;
+        font-weight: 700;
+        line-height: 1.45;
+        letter-spacing: -0.01em;
+        transition: color 0.3s ease;
+    }
+
+    /* 每个段落的第一行加强对比度,模拟 Spotify 段落层次感 */
+    .lyrics-block .lyrics-line:first-child {
+        color: #fff;
+    }
+
+    .status {
+        color: rgba(255,255,255,0.6);
+        font-size: 14px;
+        padding: 40px 24px;
+        text-align: center;
+    }
+
+    .status.error {
+        color: #f28b82;
+    }
+
+    .footer {
+        flex-shrink: 0;
+        padding: 12px 24px 20px;
+        border-top: 1px solid rgba(255,255,255,0.08);
+    }
+
+    .footer .copyright {
+        font-size: 10.5px;
+        line-height: 1.6;
+        color: rgba(255,255,255,0.35);
+        white-space: pre-line;
+    }
+
+    .footer .copyright a {
+        color: rgba(255,255,255,0.45);
+        text-decoration: underline;
+    }
+
+    .explicit-tag {
+        display: inline-block;
+        margin-left: 8px;
+        padding: 1px 5px;
+        font-size: 10px;
+        font-weight: 700;
+        background: rgba(255,255,255,0.15);
+        color: #fff;
+        border-radius: 3px;
+        vertical-align: middle;
+    }
+</style>
+</head>
+<body>
+    <div class="bg" id="bg"></div>
+    <div class="overlay-gradient"></div>
+
+    <div class="container">
+        <div class="header">
+            <img id="coverImg" src="" alt="" style="display:none;">
+            <div class="header-text">
+                <div class="song-name" id="songName"></div>
+                <div class="label">歌词</div>
+            </div>
+        </div>
+
+        <div class="lyrics-scroll" id="lyricsScroll">
+            <div class="status" id="status">歌词加载中...</div>
+        </div>
+
+        <div class="footer" id="footer" style="display:none;">
+            <div class="copyright" id="copyright"></div>
+        </div>
+    </div>
+
+<script>
+(async function () {
+    const params = new URLSearchParams(window.location.search);
+    const trackId = params.get('trackId');
+    const songName = params.get('song') || '';
+    const cover = params.get('cover') || '';
+
+    document.getElementById('songName').textContent = songName;
+
+    if (cover) {
+        const bgEl = document.getElementById('bg');
+        bgEl.style.backgroundImage = `url('${cover}')`;
+
+        const coverImg = document.getElementById('coverImg');
+        coverImg.src = cover;
+        coverImg.style.display = 'block';
+    }
+
+    const scrollEl = document.getElementById('lyricsScroll');
+    const statusEl = document.getElementById('status');
+
+    if (!trackId) {
+        statusEl.textContent = '缺少 trackId 参数';
+        statusEl.classList.add('error');
+        return;
+    }
+
+    try {
+        const res = await fetch(`https://us.api.iheart.com/api/v3/catalog/tracks/lyrics?trackId=${encodeURIComponent(trackId)}`);
+        if (!res.ok) throw new Error(`接口返回状态码 ${res.status}`);
+        const data = await res.json();
+
+        renderLyrics(data);
+    } catch (err) {
+        statusEl.textContent = '歌词加载失败: ' + err.message;
+        statusEl.classList.add('error');
+    }
+
+    function renderLyrics(data) {
+        const body = data?.lyricsBody || '';
+        if (!body.trim()) {
+            statusEl.textContent = '暂无歌词';
+            return;
+        }
+
+        statusEl.remove();
+
+        // explicit 标记显示在曲名旁边
+        if (data.explicit) {
+            const tag = document.createElement('span');
+            tag.className = 'explicit-tag';
+            tag.textContent = 'E';
+            document.getElementById('songName').appendChild(tag);
+        }
+
+        // 按空行分段(对应 Spotify 的段落分块),段内按单行换行
+        const blocks = body.split(/\n\s*\n/);
+        blocks.forEach(block => {
+            const blockEl = document.createElement('div');
+            blockEl.className = 'lyrics-block';
+
+            block.split('\n').forEach(line => {
+                if (!line.trim()) return;
+                const lineEl = document.createElement('div');
+                lineEl.className = 'lyrics-line';
+                lineEl.textContent = line;
+                blockEl.appendChild(lineEl);
+            });
+
+            scrollEl.appendChild(blockEl);
+        });
+
+        // 版权信息,弱化显示在底部,支持里面的 markdown 链接转成 <a>
+        if (data.lyricsCopyright) {
+            const footer = document.getElementById('footer');
+            const copyrightEl = document.getElementById('copyright');
+            copyrightEl.innerHTML = escapeHtml(data.lyricsCopyright)
+                .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener">$1</a>');
+            footer.style.display = 'block';
+        }
+
+    }
+
+    function escapeHtml(str) {
+        const div = document.createElement('div');
+        div.textContent = str;
+        return div.innerHTML;
+    }
+})();
+</script>
+</body>
+</html>
