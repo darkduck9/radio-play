@@ -100,12 +100,12 @@ stroke-width: 2px;}</style></defs><rect class="cls-1" x="1" y="1" width="24" hei
 </div>
 
 <div class="menu-container">
-<button id="darkModeButton">
+<button id="darkModeButton" class="control">
   <svg class="theme-icon" width="24" height="24">
     <use xlink:href="#light-icon"></use>
   </svg>
 </button>
-<button id="toggle-menu-btn">
+<button id="toggle-menu-btn" class="control">
   <svg class="menu-icon" width="24" height="24">
     <use xlink:href="#menu-icon"></use>
   </svg>
@@ -265,20 +265,20 @@ stroke-width: 2px;}</style></defs><rect class="cls-1" x="1" y="1" width="24" hei
         <h2 class="title">TAVR MEDIA</h2>
     <select class="station_select  my-select" name="src_select" id="src_select" >
         <option value='' selected disabled hidden>Station</option>
-        <option value='{"src":"https://online.hitfm.ua/HitFM_HD","request":"https://o.tavrmedia.ua/hit","name":"Hit FM"}'>Hit FM</option>
-        <option value='{"src":"https://online.hitfm.ua/HitFM_Best_HD","request":"https://o.tavrmedia.ua/hitb","name":"Hit FM Best"}'>Hit FM Best</option>       
-        <option value='{"src":"https://online.hitfm.ua/HitFM_Top_HD","request":"https://o.tavrmedia.ua/hitt","name":"Hit FM Top"}'>Hit FM Top</option>
-        <option value='{"src":"https://online.kissfm.ua/KissFM_HD","request":"https://o.tavrmedia.ua/kiss","name":"KISS FM"}'>KISS FM</option>
-        <option value='{"src":"https://online.kissfm.ua/KissFM_Deep","request":"https://o.tavrmedia.ua/kissdeep","name":"KISS FM Deep"}'>KISS FM Deep</option>
-        <option value='{"src":"https://online.kissfm.ua/KissFM_Digital_HD","request":"https://o.tavrmedia.ua/kissdigital","name":"KISS FM Digital"}'>KISS FM Digital</option> 
-        <option value='{"src":"https://online.radioroks.ua/RadioROKS_HD","request":"https://o.tavrmedia.ua/roks","name":"Radio ROKS"}'>Radio ROKS</option>
-        <option value='{"src":"https://online.radioroks.ua/RadioROKS_ClassicRock_HD","request":"https://o.tavrmedia.ua/rokscla","name":"Radio ROKS Classic Rock"}'>Radio ROKS Classic Rock</option>
-        <option value='{"src":"https://online.radioroks.ua/RadioROKS_HardnHeavy_HD","request":"https://o.tavrmedia.ua/rokshar","name":"Radio ROKS Hard n Heavy"}'>Radio ROKS Hard'n'Heavy</option>
-        <option value='{"src":"https://online.melodiafm.ua/MelodiaFM_HD","request":"https://o.tavrmedia.ua/melodia","name":"Melodia FM"}'>Melodia FM</option>
-        <option value='{"src":"https://online.melodiafm.ua/MelodiaFM_Int_HD","request":"https://o.tavrmedia.ua/melodiaint","name":"Melodia FM Int"}'>Melodia FM Int</option>
-        <option value='{"src":"https://online.melodiafm.ua/MelodiaFM_Disco_HD","request":"https://o.tavrmedia.ua/melodiad","name":"Melodia FM Disco"}'>Melodia FM Disco</option>
-        <option value='{"src":"https://online.melodiafm.ua/MelodiaFM_Romantic_HD","request":"https://o.tavrmedia.ua/melodiar","name":"Melodia FM Romantic"}'>Melodia FM Romantic</option>
-        <option value='{"src":"https://online.radioplayer.ua/FlashRadio_HD","request":"https://o.tavrmedia.ua/radio3flash","name":"Flash Radio"}'>Flash Radio</option>       
+        <option value='{"src":"https://online.hitfm.ua/HitFM_HD","request":"https://o.tavr.media/hit","name":"Hit FM"}'>Hit FM</option>
+        <option value='{"src":"https://online.hitfm.ua/HitFM_Best_HD","request":"https://o.tavr.media/hitb","name":"Hit FM Best"}'>Hit FM Best</option>       
+        <option value='{"src":"https://online.hitfm.ua/HitFM_Top_HD","request":"https://o.tavr.media/hitt","name":"Hit FM Top"}'>Hit FM Top</option>
+        <option value='{"src":"https://online.kissfm.ua/KissFM_HD","request":"https://o.tavr.media/kiss","name":"KISS FM"}'>KISS FM</option>
+        <option value='{"src":"https://online.kissfm.ua/KissFM_Deep","request":"https://o.tavr.media/kissdeep","name":"KISS FM Deep"}'>KISS FM Deep</option>
+        <option value='{"src":"https://online.kissfm.ua/KissFM_Digital_HD","request":"https://o.tavr.media/kissdigital","name":"KISS FM Digital"}'>KISS FM Digital</option> 
+        <option value='{"src":"https://online.radioroks.ua/RadioROKS_HD","request":"https://o.tavr.media/roks","name":"Radio ROKS"}'>Radio ROKS</option>
+        <option value='{"src":"https://online.radioroks.ua/RadioROKS_ClassicRock_HD","request":"https://o.tavr.media/rokscla","name":"Radio ROKS Classic Rock"}'>Radio ROKS Classic Rock</option>
+        <option value='{"src":"https://online.radioroks.ua/RadioROKS_HardnHeavy_HD","request":"https://o.tavr.media/rokshar","name":"Radio ROKS Hard n Heavy"}'>Radio ROKS Hard'n'Heavy</option>
+        <option value='{"src":"https://online.melodiafm.ua/MelodiaFM_HD","request":"https://o.tavr.media/melodia","name":"Melodia FM"}'>Melodia FM</option>
+        <option value='{"src":"https://online.melodiafm.ua/MelodiaFM_Int_HD","request":"https://o.tavr.media/melodiaint","name":"Melodia FM Int"}'>Melodia FM Int</option>
+        <option value='{"src":"https://online.melodiafm.ua/MelodiaFM_Disco_HD","request":"https://o.tavr.media/melodiad","name":"Melodia FM Disco"}'>Melodia FM Disco</option>
+        <option value='{"src":"https://online.melodiafm.ua/MelodiaFM_Romantic_HD","request":"https://o.tavr.media/melodiar","name":"Melodia FM Romantic"}'>Melodia FM Romantic</option>
+        <option value='{"src":"https://online.radioplayer.ua/FlashRadio_HD","request":"https://o.tavr.media/radio3flash","name":"Flash Radio"}'>Flash Radio</option>       
     </select>     
     <audio id="audio" controls="true" preload="none" src=""  ></audio>
   <article class="playlist_wrapper" id="playlist_wrapper">
