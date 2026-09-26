@@ -1,0 +1,964 @@
+
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>频道台 · iHeartRadio 电台查询</title>
+
+<style>
+:root{
+  --bg:#1b1d21;
+  --panel:#24262b;
+  --line:#34373d;
+  --amber:#e8a33d;
+  --text:#ece8e0;
+  --sub:#8b909a;
+
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+  box-sizing:border-box;
+}
+
+@media (prefers-color-scheme:light){
+  :root:not([data-theme="dark"]){
+    --bg:#f3f1ec;
+    --panel:#ffffff;
+    --line:#ddd8cd;
+    --amber:#c97a1c;
+    --text:#221f1a;
+    --sub:#7a756a;
+  }
+}
+
+*{
+  box-sizing:border-box;
+}
+
+body{
+  margin:0;
+  background:var(--bg);
+  color:var(--text);
+  font-family:'Oswald',Arial Narrow,Helvetica,sans-serif;
+  min-height:100%;
+}
+
+.close-iheart-button{
+  position:fixed;
+  top:10px;
+  right:10px;
+  z-index:1000;
+  width:36px;
+  height:36px;
+  display:grid;
+  place-items:center;
+  padding:0;
+  border:1px solid var(--line);
+  border-radius:50%;
+  background:var(--panel);
+  color:var(--text);
+  font-size:24px;
+  line-height:1;
+  cursor:pointer;
+}
+
+.close-iheart-button:hover{
+  border-color:var(--amber);
+  color:var(--amber);
+}
+
+.wrap{
+  max-width:760px;
+  margin:0 auto;
+  padding:32px 20px 60px;
+}
+
+h1{
+  font-weight:600;
+  letter-spacing:.3px;
+  font-size:28px;
+  margin:0 0 4px;
+}
+
+.tag{
+  color:var(--sub);
+  font-family:Georgia,serif;
+  font-style:italic;
+  font-size:15px;
+  margin:0 0 28px;
+}
+
+.dial{
+  display:flex;
+  gap:0;
+  border:1px solid var(--line);
+  border-radius:6px;
+  overflow:hidden;
+  background:var(--panel);
+}
+
+.dial input{
+  flex:1;
+  min-width:0;
+  background:transparent;
+  border:0;
+  color:var(--text);
+  font-size:18px;
+  padding:14px 16px;
+  font-family:Georgia,serif;
+  outline:none;
+}
+
+.dial button{
+  background:var(--amber);
+  border:0;
+  color:#1b1d21;
+  font-family:inherit;
+  font-weight:600;
+  font-size:15px;
+  padding:0 22px;
+  cursor:pointer;
+  letter-spacing:.5px;
+}
+
+.dial button:disabled{
+  opacity:.5;
+  cursor:default;
+}
+
+.status{
+  margin-top:14px;
+  color:var(--sub);
+  font-family:Georgia,serif;
+  font-size:14px;
+  min-height:20px;
+}
+
+.status.err{
+  color:#d9714e;
+}
+
+.best{
+  margin-top:30px;
+}
+
+.eyebrow{
+  font-family:Georgia,serif;
+  color:var(--sub);
+  font-size:13px;
+  margin:0 0 8px;
+}
+
+.station{
+  display:flex;
+  align-items:center;
+  gap:14px;
+  border:1px solid var(--line);
+  border-radius:6px;
+  padding:18px 20px;
+  background:var(--panel);
+}
+
+.station.best-station{
+  border-color:var(--amber);
+}
+
+.freq{
+  font-family:Georgia,serif;
+  font-variant-numeric:tabular-nums;
+  color:var(--amber);
+  font-size:15px;
+  min-width:28px;
+  flex-shrink:0;
+}
+
+.thumb{
+  width:52px;
+  height:52px;
+  border-radius:6px;
+  overflow:hidden;
+  flex-shrink:0;
+  background:var(--line);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-family:Georgia,serif;
+  color:var(--sub);
+  font-size:20px;
+}
+
+.thumb img{
+  width:100%;
+  height:100%;
+  object-fit:cover;
+  display:block;
+}
+
+.stext{
+  min-width:0;
+  flex:1;
+}
+
+.sname{
+  font-size:19px;
+  font-weight:600;
+  margin:0;
+}
+
+.smeta{
+  color:var(--amber);
+  font-family:Georgia,serif;
+  font-size:13px;
+  margin:3px 0 0;
+}
+
+.sdesc{
+  color:var(--sub);
+  font-family:Georgia,serif;
+  font-size:14px;
+  margin:3px 0 0;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+
+.list{
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+  margin-top:12px;
+}
+
+.list .station{
+  padding:14px 18px;
+}
+
+.list .sname{
+  font-size:16px;
+}
+
+.add-station-button{
+  flex-shrink:0;
+  border:1px solid var(--amber);
+  border-radius:4px;
+  padding:8px 14px;
+  background:var(--amber);
+  color:var(--bg);
+  font:inherit;
+  cursor:pointer;
+}
+
+.add-station-button:disabled{
+  cursor:default;
+}
+
+.add-station-button.added{
+  background:transparent;
+  color:var(--amber);
+}
+
+a.sname-link{
+  color:inherit;
+  text-decoration:none;
+  border-bottom:1px solid transparent;
+}
+
+a.sname-link:hover{
+  border-bottom-color:var(--amber);
+}
+
+details{
+  margin-top:36px;
+  border-top:1px solid var(--line);
+  padding-top:14px;
+}
+
+summary{
+  color:var(--sub);
+  font-family:Georgia,serif;
+  font-size:13px;
+  cursor:pointer;
+}
+
+textarea{
+  width:100%;
+  margin-top:10px;
+  min-height:140px;
+  background:var(--panel);
+  color:var(--text);
+  border:1px solid var(--line);
+  border-radius:6px;
+  padding:10px;
+  font-family:monospace;
+  font-size:12px;
+  resize:vertical;
+}
+
+.pbtn{
+  margin-top:8px;
+  background:transparent;
+  border:1px solid var(--line);
+  color:var(--text);
+  padding:8px 14px;
+  border-radius:4px;
+  cursor:pointer;
+  font-family:inherit;
+}
+
+.empty{
+  color:var(--sub);
+  font-family:Georgia,serif;
+  font-size:14px;
+  margin-top:30px;
+}
+
+@media(max-width:500px){
+  .wrap{
+    padding-left:14px;
+    padding-right:14px;
+  }
+
+  .station{
+    gap:10px;
+    padding:14px;
+  }
+
+  .freq{
+    min-width:24px;
+  }
+
+  .thumb{
+    width:48px;
+    height:48px;
+  }
+
+  .sname{
+    font-size:17px;
+  }
+
+  .dial button{
+    padding:0 16px;
+  }
+}
+</style>
+</head>
+
+<body>
+
+<button id="closeIheartButton" class="close-iheart-button" type="button" aria-label="关闭 iHeart 搜索">&times;</button>
+
+<div class="wrap">
+
+  <h1>频道台</h1>
+
+  <p class="tag">
+    在 iHeartRadio 中查找电台
+  </p>
+
+  <div class="dial">
+    <input
+      id="q"
+      placeholder="输入关键词搜索电台"
+      autocomplete="off"
+    >
+    <button id="go">调台</button>
+  </div>
+
+  <p class="status" id="status"></p>
+
+  <div id="results"></div>
+
+  <details>
+    <summary>
+      手动粘贴 API JSON
+    </summary>
+
+    <textarea
+      id="paste"
+      placeholder="粘贴 iHeart Catalog API 返回的 JSON 文本"
+    ></textarea>
+
+    <button class="pbtn" id="parsePasted">
+      解析 JSON
+    </button>
+  </details>
+
+</div>
+
+<script type="module">
+
+import { saveRadioStation } from './radioManager.js';
+
+document.getElementById('closeIheartButton').addEventListener('click', () => {
+  if (window.parent !== window) {
+    window.parent.postMessage({ type: 'close-iheart-search' }, window.location.origin);
+  }
+});
+
+/* =========================================================
+   配置
+   ========================================================= */
+
+const API_BASE =
+  'https://orange-haze-cors.chatgpt-api.workers.dev/iheart/search';
+
+
+/* =========================================================
+   HTML 转义
+   ========================================================= */
+
+function escapeHtml(str){
+  return String(str ?? '').replace(
+    /[&<>"']/g,
+    m => ({
+      '&':'&amp;',
+      '<':'&lt;',
+      '>':'&gt;',
+      '"':'&quot;',
+      "'":'&#39;'
+    }[m])
+  );
+}
+
+
+/* =========================================================
+   电台页面链接
+   ========================================================= */
+
+function stationLink(station){
+
+  /*
+   * iHeart 电台页面通常可以通过 station id 定位。
+   * 如果以后发现某些 station 的页面 URL 不一致，
+   * 这里可以再改成由 API 返回的 shareLink。
+   */
+
+  if (station.shareLink){
+    return station.shareLink;
+  }
+
+  return 'https://www.iheart.com/live/' +
+    encodeURIComponent(station.id) +
+    '/';
+}
+
+
+/* =========================================================
+   创建电台列表项目
+   ========================================================= */
+
+function stationRow(station, index, isBest){
+
+  const wrap = document.createElement('div');
+
+  wrap.className =
+    'station' +
+    (isBest ? ' best-station' : '');
+
+  const name =
+    station.name ||
+    '未命名电台';
+
+  const description =
+    station.description ||
+    '';
+
+  const logo =
+    station.logo ||
+    station.newlogo ||
+    '';
+
+  const initial =
+    escapeHtml(
+      (name.trim()[0] || '?').toUpperCase()
+    );
+
+  const frequency =
+    station.frequency ||
+    '';
+
+  const callLetters =
+    station.callLetters ||
+    '';
+
+  const meta = [
+    frequency,
+    callLetters
+  ].filter(Boolean).join(' · ');
+
+  const link =
+    stationLink(station);
+
+  wrap.innerHTML = `
+
+    <div class="freq">
+      ${isBest
+        ? '★'
+        : String(index + 1).padStart(2,'0')}
+    </div>
+
+    <div class="thumb">
+
+      ${
+        logo
+        ? `
+          <img
+            src="${escapeHtml(logo)}"
+            alt=""
+            loading="lazy"
+            onerror="
+              this.style.display='none';
+              this.parentElement.textContent='${initial}';
+            "
+          >
+        `
+        : initial
+      }
+
+    </div>
+
+    <div class="stext">
+
+      <p class="sname">
+
+        <a
+          class="sname-link"
+          href="${escapeHtml(link)}"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          ${escapeHtml(name)}
+        </a>
+
+      </p>
+
+      ${
+        meta
+        ? `
+          <p class="smeta">
+            ${escapeHtml(meta)}
+          </p>
+        `
+        : ''
+      }
+
+      <p
+        class="sdesc"
+        title="${escapeHtml(description)}"
+      >
+        ${escapeHtml(description)}
+        ${station.id ? ' · #' + escapeHtml(station.id) : ''}
+      </p>
+
+    </div>
+  `;
+
+  const addButton = document.createElement('button');
+  addButton.type = 'button';
+  addButton.className = 'add-station-button';
+  addButton.textContent = '添加';
+  addButton.addEventListener('click', async () => {
+    addButton.disabled = true;
+    addButton.textContent = '保存中';
+
+    const stationId = String(station.id);
+    const logoUrl = station.logo || station.newlogo || '';
+    const providedStream = station.streamUrl || station.stream_url ||
+      (typeof station.stream === 'string' ? station.stream : '');
+    const streamUrl = typeof providedStream === 'string' && providedStream
+      ? providedStream
+      : `https://stream.revma.ihrhls.com/zc${encodeURIComponent(stationId)}/hls.m3u8`;
+
+    try {
+      await saveRadioStation({
+        name,
+        icon: logoUrl,
+        description,
+        frequency,
+        callLetters,
+        params: {
+          url: streamUrl,
+          title: name,
+          cover: logoUrl,
+          channel: callLetters || name,
+          id: stationId,
+          mark: 1
+        }
+      });
+      addButton.textContent = '已添加';
+      addButton.classList.add('added');
+    } catch (error) {
+      console.error('添加电台失败:', error);
+      addButton.disabled = false;
+      addButton.textContent = '重试';
+    }
+  });
+  wrap.appendChild(addButton);
+
+  return wrap;
+}
+
+
+/* =========================================================
+   渲染搜索结果
+   ========================================================= */
+
+function render(data){
+
+  const box =
+    document.getElementById('results');
+
+  box.innerHTML = '';
+
+  if (
+    !data ||
+    !Array.isArray(data.stations)
+  ){
+
+    box.innerHTML =
+      '<p class="empty">没有找到电台。</p>';
+
+    return;
+  }
+
+  const stations =
+    data.stations.filter(
+      station =>
+        station &&
+        station.id &&
+        station.name
+    );
+
+  if (!stations.length){
+
+    box.innerHTML =
+      '<p class="empty">没有找到相关电台。</p>';
+
+    return;
+  }
+
+
+  /* ============================
+     最佳匹配
+     ============================ */
+
+  const bestId =
+    data.bestMatch &&
+    data.bestMatch.id;
+
+  let bestStation =
+    stations.find(
+      station =>
+        Number(station.id) === Number(bestId)
+    );
+
+  /*
+   * 如果 API 没有给 bestMatch，
+   * 就默认第一条。
+   */
+
+  if (!bestStation){
+    bestStation = stations[0];
+  }
+
+
+  const bestSec =
+    document.createElement('div');
+
+  bestSec.className = 'best';
+
+  const bestTitle =
+    document.createElement('p');
+
+  bestTitle.className = 'eyebrow';
+
+  bestTitle.textContent =
+    '最佳匹配';
+
+  bestSec.appendChild(bestTitle);
+
+  bestSec.appendChild(
+    stationRow(
+      bestStation,
+      0,
+      true
+    )
+  );
+
+  box.appendChild(bestSec);
+
+
+  /* ============================
+     其他结果
+     ============================ */
+
+  const others =
+    stations.filter(
+      station =>
+        Number(station.id) !==
+        Number(bestStation.id)
+    );
+
+
+  if (others.length){
+
+    const sec =
+      document.createElement('div');
+
+    sec.className = 'best';
+
+    const title =
+      document.createElement('p');
+
+    title.className = 'eyebrow';
+
+    title.textContent =
+      '其他结果 (' + others.length + ')';
+
+    sec.appendChild(title);
+
+    const list =
+      document.createElement('div');
+
+    list.className = 'list';
+
+    others.forEach(
+      (station, index) => {
+
+        list.appendChild(
+          stationRow(
+            station,
+            index,
+            false
+          )
+        );
+
+      }
+    );
+
+    sec.appendChild(list);
+
+    box.appendChild(sec);
+  }
+}
+
+
+/* =========================================================
+   状态
+   ========================================================= */
+
+function setStatus(msg, isErr){
+
+  const el =
+    document.getElementById('status');
+
+  el.textContent =
+    msg || '';
+
+  el.className =
+    'status' +
+    (isErr ? ' err' : '');
+}
+
+
+/* =========================================================
+   搜索
+   ========================================================= */
+
+async function search(){
+
+  const q =
+    document
+      .getElementById('q')
+      .value
+      .trim();
+
+  if (!q){
+    return;
+  }
+
+  const btn =
+    document.getElementById('go');
+
+  btn.disabled = true;
+
+  setStatus('查台中…');
+
+  document
+    .getElementById('results')
+    .innerHTML = '';
+
+
+  try{
+
+    const url =
+      API_BASE +
+      '?q=' +
+      encodeURIComponent(q);
+
+    const res =
+      await fetch(url, {
+        method:'GET',
+        headers:{
+          'Accept':'application/json'
+        },
+        cache:'no-store'
+      });
+
+
+    if (!res.ok){
+
+      throw new Error(
+        'HTTP ' + res.status
+      );
+
+    }
+
+
+    const data =
+      await res.json();
+
+
+    if (data.errors){
+
+      throw new Error(
+        Array.isArray(data.errors)
+          ? data.errors.join(', ')
+          : String(data.errors)
+      );
+
+    }
+
+
+    render(data);
+
+
+    const count =
+      Array.isArray(data.stations)
+        ? data.stations.length
+        : 0;
+
+
+    setStatus(
+      '找到 ' +
+      count +
+      ' 个电台 · 关键词 "' +
+      q +
+      '"'
+    );
+
+
+  }catch(err){
+
+    console.error(err);
+
+    setStatus(
+      '请求失败：' +
+      err.message,
+      true
+    );
+
+    document
+      .getElementById('results')
+      .innerHTML =
+        '<p class="empty">无法获取电台数据。</p>';
+
+  }finally{
+
+    btn.disabled = false;
+
+  }
+}
+
+
+/* =========================================================
+   手动解析 JSON
+   ========================================================= */
+
+document
+  .getElementById('parsePasted')
+  .addEventListener(
+    'click',
+    () => {
+
+      const raw =
+        document
+          .getElementById('paste')
+          .value
+          .trim();
+
+      if (!raw){
+        return;
+      }
+
+      try{
+
+        const data =
+          JSON.parse(raw);
+
+        render(data);
+
+        const count =
+          Array.isArray(data.stations)
+            ? data.stations.length
+            : 0;
+
+        setStatus(
+          '已从 JSON 解析出 ' +
+          count +
+          ' 个电台'
+        );
+
+      }catch(err){
+
+        console.error(err);
+
+        setStatus(
+          '粘贴内容不是有效的 JSON。',
+          true
+        );
+
+      }
+
+    }
+  );
+
+
+/* =========================================================
+   事件
+   ========================================================= */
+
+document
+  .getElementById('go')
+  .addEventListener(
+    'click',
+    search
+  );
+
+
+document
+  .getElementById('q')
+  .addEventListener(
+    'keydown',
+    event => {
+
+      if (
+        event.key === 'Enter'
+      ){
+        search();
+      }
+
+    }
+  );
+
+
+/* =========================================================
+   初始搜索
+   ========================================================= */
+
+search();
+
+</script>
+
+</body>
+</html>

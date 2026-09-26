@@ -1,9 +1,9 @@
 importScripts('https://cdnjs.cloudflare.com/ajax/libs/workbox-sw/7.0.0/workbox-sw.min.js');
 
 const versions = {
-    images: 'v0.56',
-    js: 'v0.75',
-    css: 'v0.64'
+    images: 'v0.59',
+    js: 'v0.80',
+    css: 'v0.69'
 };
 
 if (workbox) {
@@ -39,7 +39,7 @@ if (workbox) {
         })
     );
 
-   workbox.routing.registerRoute(
+    workbox.routing.registerRoute(
         ({request}) => request.destination === 'style',
         new workbox.strategies.CacheFirst({
             cacheName: `css-cache-${versions.css}`,

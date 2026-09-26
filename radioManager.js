@@ -1,23 +1,183 @@
-import { getRadio, saveOrder } from './radioinfo.js';
+import { defaultRadioStations, getRadio, saveOrder } from './radioinfo.js';
+
+const STATION_PAGE_SIZES = [9, 12, 15, 18, 21];
+
+function openRadioDatabase() {
+    return new Promise((resolve, reject) => {
+        const request = indexedDB.open('RadioDB', 1);
+
+        request.onerror = () => reject(request.error);
+        request.onsuccess = () => resolve(request.result);
+        request.onupgradeneeded = (event) => {
+            const db = event.target.result;
+            if (!db.objectStoreNames.contains('radioStations')) {
+                db.createObjectStore('radioStations', { keyPath: 'id' });
+            }
+        };
+    });
+}
+
+export async function saveRadioStation(station) {
+    if (!station?.params?.id || !station.name) {
+        throw new Error('电台名称和ID不能为空');
+    }
+
+    const db = await openRadioDatabase();
+    return new Promise((resolve, reject) => {
+        const transaction = db.transaction('radioStations', 'readwrite');
+        transaction.oncomplete = () => {
+            db.close();
+            if (window.parent !== window) {
+                window.parent.postMessage({
+                    type: 'radio-station-saved',
+                    id: String(station.params.id)
+                }, window.location.origin);
+            }
+            resolve(station);
+        };
+        transaction.onerror = () => {
+            db.close();
+            reject(transaction.error);
+        };
+        transaction.onabort = () => {
+            db.close();
+            reject(transaction.error);
+        };
+        transaction.objectStore('radioStations').put({
+            ...station,
+            params: {
+                ...station.params,
+                mark: station.params.mark ?? 1
+            },
+            id: String(station.params.id)
+        });
+    });
+}
+
+async function getSavedRadioStations() {
+    const db = await openRadioDatabase();
+    return new Promise((resolve, reject) => {
+        const transaction = db.transaction('radioStations', 'readonly');
+        const request = transaction.objectStore('radioStations').getAll();
+        request.onsuccess = () => {
+            db.close();
+            resolve(request.result);
+        };
+        request.onerror = () => {
+            db.close();
+            reject(request.error);
+        };
+    });
+}
+
+async function deleteSavedRadioStation(stationId) {
+    const db = await openRadioDatabase();
+    return new Promise((resolve, reject) => {
+        const transaction = db.transaction('radioStations', 'readwrite');
+        transaction.objectStore('radioStations').delete(String(stationId));
+        transaction.oncomplete = () => {
+            db.close();
+            resolve();
+        };
+        transaction.onerror = () => {
+            db.close();
+            reject(transaction.error);
+        };
+        transaction.onabort = () => {
+            db.close();
+            reject(transaction.error);
+        };
+    });
+}
+
+function getDeletableStationIds(savedStations) {
+    const defaultIds = new Set(defaultRadioStations.map(station => String(station.params.id)));
+    return new Set(
+        savedStations
+            .map(station => String(station.params?.id ?? station.id))
+            .filter(id => id && !defaultIds.has(id))
+    );
+}
 
 class RadioManager {
     constructor() {
         this.radioStations = getRadio();
-        this.stationsPerPage = 9;
+        const savedStationsPerPage = Number(localStorage.getItem('stationsPerPage'));
+        this.stationsPerPage = STATION_PAGE_SIZES.includes(savedStationsPerPage)
+            ? savedStationsPerPage
+            : 9;
         this.currentPage = 1;
         this.totalPages = Math.ceil(this.radioStations.length / this.stationsPerPage);
         this.touchStartX = 0;
         this.touchEndX = 0;
         this.isDragging = false;
+        this.isReady = false;
+        this.pendingStationId = null;
+        this.savedStationIds = new Set();
+        this.showAllPages = false;
+        this.paginationLongPressTimer = null;
+        this.ignoreNextPaginationClick = false;
+        window.addEventListener('radio-station-saved', (event) => {
+            if (!event.detail?.id) return;
+            if (this.isReady) {
+                this.refreshRadioStations(event.detail.id);
+            } else {
+                this.pendingStationId = event.detail.id;
+            }
+        });
         this.init();
     }
 
-    init() {
+    async init() {
+        try {
+            const savedStations = await getSavedRadioStations();
+            this.savedStationIds = getDeletableStationIds(savedStations);
+            this.radioStations = getRadio(savedStations);
+        } catch (error) {
+            console.error('读取已添加电台失败:', error);
+        }
+        this.totalPages = Math.ceil(this.radioStations.length / this.stationsPerPage);
+        const savedPage = Number.parseInt(localStorage.getItem('lastViewedPage'), 10);
+        this.currentPage = Number.isNaN(savedPage)
+            ? 1
+            : Math.min(Math.max(savedPage, 1), Math.max(this.totalPages, 1));
         this.createPages();
         this.initContextMenu();
         this.initTouchEvents();
         this.initMouseEvents();
         this.createPaginationIndicator();
+        if (this.totalPages > 0) {
+            this.changePage(this.currentPage);
+        }
+        this.isReady = true;
+        if (this.pendingStationId) {
+            this.refreshRadioStations(this.pendingStationId);
+            this.pendingStationId = null;
+        }
+    }
+
+    async refreshRadioStations(stationId) {
+        try {
+            const savedStations = await getSavedRadioStations();
+            this.savedStationIds = getDeletableStationIds(savedStations);
+            this.radioStations = getRadio(savedStations);
+            this.totalPages = Math.ceil(this.radioStations.length / this.stationsPerPage);
+
+            const stationIndex = this.radioStations.findIndex(
+                station => String(station.params.id) === String(stationId)
+            );
+            this.currentPage = stationIndex >= 0
+                ? Math.floor(stationIndex / this.stationsPerPage) + 1
+                : 1;
+
+            this.createPages();
+            this.createPaginationIndicator();
+            if (this.currentPage > 1) {
+                this.changePage(this.currentPage);
+            }
+        } catch (error) {
+            console.error('刷新电台列表失败:', error);
+        }
     }
 
     initContextMenu() {
@@ -39,33 +199,66 @@ class RadioManager {
         `;
         document.body.appendChild(contextMenu);
 
+        let longPressTimer = null;
+        let startX = 0;
+        let startY = 0;
+        let longPressOnStation = false;
+        let ignoreNextDismissClick = false;
+
+        const showContextMenu = (clientX, clientY, suppressStationPlayback = false) => {
+            contextMenu.style.display = 'block';
+            const rect = contextMenu.getBoundingClientRect();
+            const left = Math.max(0, Math.min(clientX, window.innerWidth - rect.width));
+            const top = Math.max(0, Math.min(clientY, window.innerHeight - rect.height));
+            contextMenu.style.left = `${left}px`;
+            contextMenu.style.top = `${top}px`;
+            if (suppressStationPlayback) this.ignoreNextRadioClick = true;
+        };
+
+        const clearLongPress = () => {
+            clearTimeout(longPressTimer);
+            longPressTimer = null;
+        };
+
         // 添加右键菜单事件
-        //container.addEventListener('contextmenu', (e) => {
-         //   e.preventDefault();
-         //   const rect = container.getBoundingClientRect();
-          //  const x = e.clientX - rect.left;
-          //  const y = e.clientY - rect.top;
-            
-            // 确保菜单不会超出容器边界
-         //   const menuWidth = 150;
-          //  const menuHeight = 40;
-          //  let left = e.clientX;
-           // let top = e.clientY;
-            
-          //  if (left + menuWidth > window.innerWidth) {
-           //     left = window.innerWidth - menuWidth;
-          //  }
-          //  if (top + menuHeight > window.innerHeight) {
-          //      top = window.innerHeight - menuHeight;
-         //   }
-            
-         //   contextMenu.style.display = 'block';
-         //   contextMenu.style.left = `${left}px`;
-          //  contextMenu.style.top = `${top}px`;
-      //  });
+        container.addEventListener('contextmenu', (event) => {
+            event.preventDefault();
+            showContextMenu(event.clientX, event.clientY);
+        });
+
+        container.addEventListener('pointerdown', (event) => {
+            if (event.pointerType !== 'touch' || event.target.closest('.pagination')) return;
+            clearLongPress();
+            startX = event.clientX;
+            startY = event.clientY;
+            longPressOnStation = Boolean(event.target.closest('.radio-button'));
+            longPressTimer = setTimeout(() => {
+                ignoreNextDismissClick = true;
+                showContextMenu(startX, startY, longPressOnStation);
+            }, 600);
+        });
+
+        document.addEventListener('pointermove', (event) => {
+            if (!longPressTimer) return;
+            if (Math.abs(event.clientX - startX) > 10 || Math.abs(event.clientY - startY) > 10) {
+                clearLongPress();
+            }
+        });
+
+        document.addEventListener('pointerup', () => {
+            clearLongPress();
+            setTimeout(() => {
+                ignoreNextDismissClick = false;
+            }, 0);
+        });
+        document.addEventListener('pointercancel', clearLongPress);
 
         // 点击其他地方关闭菜单
         document.addEventListener('click', (e) => {
+            if (ignoreNextDismissClick) {
+                ignoreNextDismissClick = false;
+                return;
+            }
             if (!contextMenu.contains(e.target)) {
                 contextMenu.style.display = 'none';
             }
@@ -83,99 +276,44 @@ class RadioManager {
         // 创建排序界面
         const sortingModal = document.createElement('div');
         sortingModal.className = 'sorting-modal';
-        sortingModal.style.cssText = `
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.8);
-            z-index: 2000;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        `;
 
         const sortingContainer = document.createElement('div');
         sortingContainer.className = 'sorting-container';
-        sortingContainer.style.cssText = `
-            background: #fff;
-            border-radius: 12px;
-            width: 90%;
-            max-width: 1200px;
-            height: 90%;
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
-        `;
 
         const sortingHeader = document.createElement('div');
         sortingHeader.className = 'sorting-header';
-        sortingHeader.style.cssText = `
-            padding: 20px;
-            border-bottom: 1px solid #eee;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        `;
 
         // 添加每页显示数量设置
         const pageSizeControl = document.createElement('div');
-        pageSizeControl.style.cssText = `
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        `;
+        pageSizeControl.className = 'sorting-page-size';
         pageSizeControl.innerHTML = `
-            <span>每页显示：</span>
-            <select id="pageSizeSelect" style="padding: 4px 8px; border-radius: 4px; border: 1px solid #ddd;">
-                <option value="9">9个</option>
-                <option value="12">12个</option>
-                <option value="16">16个</option>
-                <option value="20">20个</option>
+            <span>每页显示</span>
+            <select id="pageSizeSelect">
+                ${STATION_PAGE_SIZES.map(size => `<option value="${size}">${size}个</option>`).join('')}
             </select>
         `;
 
         sortingHeader.innerHTML = `
-            <h2 style="margin: 0; font-size: 1.5em;">调整电台顺序</h2>
-            <div style="display: flex; align-items: center; gap: 20px;">
+            <h2>调整电台顺序</h2>
+            <div class="sorting-header-controls">
                 ${pageSizeControl.outerHTML}
-                <button class="close-btn" style="background: none; border: none; font-size: 24px; cursor: pointer;">&times;</button>
+                <button class="close-btn" type="button" aria-label="关闭">&times;</button>
             </div>
         `;
 
         const sortingContent = document.createElement('div');
         sortingContent.className = 'sorting-content';
-        sortingContent.style.cssText = `
-            flex: 1;
-            overflow-y: auto;
-            padding: 20px;
-            position: relative;
-            background: #fff;
-        `;
 
         // 创建分页容器
         const pagesContainer = document.createElement('div');
         pagesContainer.className = 'sorting-pages';
-        pagesContainer.style.cssText = `
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
-            padding: 10px;
-        `;
 
         // 创建分页指示器
         const paginationIndicator = document.createElement('div');
         paginationIndicator.className = 'sorting-pagination';
-        paginationIndicator.style.cssText = `
-            display: flex;
-            justify-content: center;
-            gap: 10px;
-            margin-top: 20px;
-        `;
 
         // 初始化分页
-        let currentPageSize = 9;
+        let currentPageSize = self.stationsPerPage;
         let currentPage = 1;
         let totalPages = Math.ceil(self.radioStations.length / currentPageSize);
 
@@ -187,27 +325,10 @@ class RadioManager {
             for (let i = 1; i <= totalPages; i++) {
                 const page = document.createElement('div');
                 page.className = 'sorting-page';
-                page.style.cssText = `
-                    display: grid;
-                    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-                    gap: 20px;
-                    padding: 10px;
-                    margin-bottom: 20px;
-                    background: #f8f9fa;
-                    border-radius: 8px;
-                `;
 
                 // 添加分页标题
                 const pageHeader = document.createElement('div');
-                pageHeader.style.cssText = `
-                    grid-column: 1 / -1;
-                    padding: 10px;
-                    background: #e9ecef;
-                    border-radius: 4px;
-                    margin-bottom: 10px;
-                    font-weight: bold;
-                    color: #495057;
-                `;
+                pageHeader.className = 'sorting-page-header';
                 pageHeader.textContent = `第 ${i} 页`;
                 page.appendChild(pageHeader);
 
@@ -220,20 +341,9 @@ class RadioManager {
                 pageStations.forEach(station => {
                     const stationElement = document.createElement('div');
                     stationElement.className = 'sorting-station';
-                    stationElement.style.cssText = `
-                        background: #fff;
-                        border-radius: 8px;
-                        padding: 10px;
-                        display: flex;
-                        align-items: center;
-                        gap: 10px;
-                        cursor: move;
-                        transition: transform 0.2s, box-shadow 0.2s;
-                        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-                    `;
                     stationElement.innerHTML = `
-                        <img src="${station.icon}" alt="${station.name}" style="width: 40px; height: 40px; object-fit: contain;">
-                        <span style="flex: 1; font-size: 14px;">${station.name}</span>
+                        <img src="${station.icon}" alt="${station.name}">
+                        <span>${station.name}</span>
                     `;
                     stationElement.setAttribute('data-station-id', station.params.id);
                     page.appendChild(stationElement);
@@ -284,16 +394,9 @@ class RadioManager {
 
         const sortingFooter = document.createElement('div');
         sortingFooter.className = 'sorting-footer';
-        sortingFooter.style.cssText = `
-            padding: 20px;
-            border-top: 1px solid #eee;
-            display: flex;
-            justify-content: flex-end;
-            gap: 10px;
-        `;
         sortingFooter.innerHTML = `
-            <button class="cancel-btn" style="padding: 8px 16px; border: 1px solid #ddd; border-radius: 4px; background: #fff; cursor: pointer;">取消</button>
-            <button class="save-btn" style="padding: 8px 16px; border: none; border-radius: 4px; background: #007bff; color: #fff; cursor: pointer;">保存</button>
+            <button class="cancel-btn" type="button">取消</button>
+            <button class="save-btn" type="button">保存</button>
         `;
 
         sortingContent.appendChild(pagesContainer);
@@ -303,6 +406,34 @@ class RadioManager {
         sortingContainer.appendChild(sortingFooter);
         sortingModal.appendChild(sortingContainer);
         document.body.appendChild(sortingModal);
+        sortingModal.querySelector('#pageSizeSelect').value = String(currentPageSize);
+        requestAnimationFrame(() => {
+            requestAnimationFrame(() => sortingModal.classList.add('is-open'));
+        });
+
+        let isClosing = false;
+        let closeTimer = null;
+        const closeSortingModal = () => {
+            if (isClosing) return;
+            isClosing = true;
+            sortingModal.classList.remove('is-open');
+            document.removeEventListener('keydown', escHandler);
+
+            const removeModal = () => {
+                window.clearTimeout(closeTimer);
+                sortingModal.remove();
+            };
+            sortingModal.addEventListener('transitionend', (event) => {
+                if (event.target === sortingModal && event.propertyName === 'opacity') {
+                    removeModal();
+                }
+            }, { once: true });
+            closeTimer = window.setTimeout(removeModal, 220);
+        };
+
+        function escHandler(event) {
+            if (event.key === 'Escape') closeSortingModal();
+        }
 
         // 添加每页显示数量变化事件
         document.getElementById('pageSizeSelect').addEventListener('change', (e) => {
@@ -314,16 +445,16 @@ class RadioManager {
 
         // 添加关闭按钮事件
         sortingModal.querySelector('.close-btn').addEventListener('click', () => {
-            sortingModal.remove();
+            closeSortingModal();
         });
 
         // 添加取消按钮事件
         sortingModal.querySelector('.cancel-btn').addEventListener('click', () => {
-            sortingModal.remove();
+            closeSortingModal();
         });
 
         // 添加保存按钮事件
-        sortingModal.querySelector('.save-btn').addEventListener('click', () => {
+        sortingModal.querySelector('.save-btn').addEventListener('click', async () => {
             const newOrder = [];
             const idSet = new Set();
             const duplicateIds = new Set();
@@ -347,35 +478,16 @@ class RadioManager {
 
                 // 创建错误提示模态框
                 const errorModal = document.createElement('div');
-                errorModal.style.cssText = `
-                    position: fixed;
-                    top: 50%;
-                    left: 50%;
-                    transform: translate(-50%, -50%);
-                    background: #fff;
-                    padding: 20px;
-                    border-radius: 8px;
-                    box-shadow: 0 2px 10px rgba(0,0,0,0.2);
-                    z-index: 2100;
-                    max-width: 80%;
-                `;
+                errorModal.className = 'sorting-error-modal';
 
                 errorModal.innerHTML = `
-                    <h3 style="color: #dc3545; margin-top: 0;">无法保存：存在重复的电台ID</h3>
+                    <h3 class="sorting-error-title">无法保存：存在重复的电台ID</h3>
                     <p>以下电台的ID重复，请修改后再保存：</p>
-                    <ul style="color: #dc3545;">
+                    <ul class="sorting-error-list">
                         ${duplicateStations.map(name => `<li>${name}</li>`).join('')}
                     </ul>
                     <p>请修改电台ID后再尝试保存。</p>
-                    <button style="
-                        padding: 8px 16px;
-                        background: #007bff;
-                        color: #fff;
-                        border: none;
-                        border-radius: 4px;
-                        cursor: pointer;
-                        margin-top: 10px;
-                    ">确定</button>
+                    <button class="sorting-error-close" type="button">确定</button>
                 `;
 
                 // 添加确定按钮事件
@@ -389,217 +501,16 @@ class RadioManager {
 
             // 如果没有重复ID，继续保存
             saveOrder(newOrder);
-            self.radioStations = getRadio();
+            self.radioStations = getRadio(await getSavedRadioStations());
             self.stationsPerPage = currentPageSize;
+            localStorage.setItem('stationsPerPage', String(currentPageSize));
             self.recreatePages();
-            sortingModal.remove();
+            closeSortingModal();
         });
 
         // 添加ESC键关闭
-        document.addEventListener('keydown', function escHandler(e) {
-            if (e.key === 'Escape') {
-                sortingModal.remove();
-                document.removeEventListener('keydown', escHandler);
-            }
-        });
+        document.addEventListener('keydown', escHandler);
 
-        function showStationContextMenu(e, station) {
-            e.preventDefault();
-            
-            // 创建右键菜单
-            const contextMenu = document.createElement('div');
-            contextMenu.style.cssText = `
-                position: fixed;
-                left: ${e.clientX}px;
-                top: ${e.clientY}px;
-                background: rgba(0, 0, 0, 0.9);
-                border-radius: 8px;
-                padding: 8px 0;
-                min-width: 150px;
-                z-index: 2100;
-            `;
-
-            const editOption = document.createElement('div');
-            editOption.textContent = '编辑电台信息';
-            editOption.style.cssText = `
-                padding: 8px 16px;
-                color: #fff;
-                cursor: pointer;
-                transition: background-color 0.2s;
-            `;
-            editOption.onmouseover = () => editOption.style.backgroundColor = 'rgba(255, 255, 255, 0.1)';
-            editOption.onmouseout = () => editOption.style.backgroundColor = 'transparent';
-            editOption.onclick = () => {
-                showEditStationModal(station);
-                contextMenu.remove();
-            };
-
-            contextMenu.appendChild(editOption);
-            document.body.appendChild(contextMenu);
-
-            // 点击其他地方关闭菜单
-            const closeMenu = (e) => {
-                if (!contextMenu.contains(e.target)) {
-                    contextMenu.remove();
-                    document.removeEventListener('click', closeMenu);
-                }
-            };
-            document.addEventListener('click', closeMenu);
-        }
-
-        function showEditStationModal(station) {
-            const modal = document.createElement('div');
-            modal.style.cssText = `
-                position: fixed;
-                top: 0;
-                left: 0;
-                width: 100%;
-                height: 100%;
-                background: rgba(0, 0, 0, 0.8);
-                display: flex;
-                justify-content: center;
-                align-items: center;
-                z-index: 2200;
-            `;
-
-            const modalContent = document.createElement('div');
-            modalContent.style.cssText = `
-                background: #fff;
-                padding: 20px;
-                border-radius: 12px;
-                width: 90%;
-                max-width: 500px;
-                max-height: 90vh;
-                overflow-y: auto;
-            `;
-
-            const form = document.createElement('form');
-            form.innerHTML = `
-                <h3 style="margin-top: 0;">编辑电台信息</h3>
-                <div style="margin-bottom: 15px;">
-                    <label style="display: block; margin-bottom: 5px;">电台名称</label>
-                    <input type="text" name="name" value="${station.name}" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
-                </div>
-                <div style="margin-bottom: 15px;">
-                    <label style="display: block; margin-bottom: 5px;">图标URL</label>
-                    <input type="text" name="icon" value="${station.icon}" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
-                </div>
-                <div style="margin-bottom: 15px;">
-                    <label style="display: block; margin-bottom: 5px;">播放地址</label>
-                    <input type="text" name="url" value="${station.params.url}" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
-                </div>
-                <div style="margin-bottom: 15px;">
-                    <label style="display: block; margin-bottom: 5px;">标题</label>
-                    <input type="text" name="title" value="${station.params.title}" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
-                </div>
-                <div style="margin-bottom: 15px;">
-                    <label style="display: block; margin-bottom: 5px;">封面URL</label>
-                    <input type="text" name="cover" value="${station.params.cover}" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
-                </div>
-                <div style="margin-bottom: 15px;">
-                    <label style="display: block; margin-bottom: 5px;">频道</label>
-                    <input type="text" name="channel" value="${station.params.channel}" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
-                </div>
-                <div style="margin-bottom: 15px;">
-                    <label style="display: block; margin-bottom: 5px;">ID</label>
-                    <input type="text" name="id" value="${station.params.id}" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
-                </div>
-                <div style="margin-bottom: 15px;">
-                    <label style="display: block; margin-bottom: 5px;">标记</label>
-                    <input type="number" name="mark" value="${station.params.mark}" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
-                </div>
-                <div style="display: flex; justify-content: flex-end; gap: 10px;">
-                    <button type="button" class="cancel-btn" style="padding: 8px 16px; border: 1px solid #ddd; border-radius: 4px; background: #fff; cursor: pointer;">取消</button>
-                    <button type="submit" class="save-btn" style="padding: 8px 16px; border: none; border-radius: 4px; background: #007bff; color: #fff; cursor: pointer;">保存</button>
-                </div>
-            `;
-
-            form.onsubmit = async (e) => {
-                e.preventDefault();
-                const formData = new FormData(form);
-                
-                // 更新电台信息
-                const updatedStation = {
-                    name: formData.get('name'),
-                    icon: formData.get('icon'),
-                    params: {
-                        url: formData.get('url'),
-                        title: formData.get('title'),
-                        cover: formData.get('cover'),
-                        channel: formData.get('channel'),
-                        id: formData.get('id'),
-                        mark: parseInt(formData.get('mark'))
-                    }
-                };
-
-                try {
-                    // 保存到 IndexedDB
-                    const db = await openDB();
-                    const tx = db.transaction('radioStations', 'readwrite');
-                    const store = tx.objectStore('radioStations');
-                    
-                    // 更新电台信息
-                    await store.put(updatedStation, station.params.id);
-                    
-                    // 更新内存中的电台信息
-                    const index = self.radioStations.findIndex(s => s.params.id === station.params.id);
-                    if (index !== -1) {
-                        self.radioStations[index] = updatedStation;
-                    }
-
-                    // 刷新显示
-                    updatePages();
-                    modal.remove();
-                } catch (error) {
-                    console.error('保存失败:', error);
-                    alert('保存失败，请重试');
-                }
-            };
-
-            modalContent.appendChild(form);
-            modal.appendChild(modalContent);
-            document.body.appendChild(modal);
-
-            // 添加取消按钮事件
-            modal.querySelector('.cancel-btn').onclick = () => modal.remove();
-
-            // 添加ESC键关闭
-            const escHandler = (e) => {
-                if (e.key === 'Escape') {
-                    modal.remove();
-                    document.removeEventListener('keydown', escHandler);
-                }
-            };
-            document.addEventListener('keydown', escHandler);
-        }
-
-        // 为每个电台添加右键菜单事件
-        pagesContainer.querySelectorAll('.sorting-station').forEach(stationElement => {
-            stationElement.addEventListener('contextmenu', (e) => {
-                const stationId = stationElement.getAttribute('data-station-id');
-                const station = self.radioStations.find(s => s.params.id === stationId);
-                if (station) {
-                    showStationContextMenu(e, station);
-                }
-            });
-        });
-
-        // 添加 IndexedDB 相关函数
-        function openDB() {
-            return new Promise((resolve, reject) => {
-                const request = indexedDB.open('RadioDB', 1);
-                
-                request.onerror = () => reject(request.error);
-                request.onsuccess = () => resolve(request.result);
-                
-                request.onupgradeneeded = (e) => {
-                    const db = e.target.result;
-                    if (!db.objectStoreNames.contains('radioStations')) {
-                        db.createObjectStore('radioStations', { keyPath: 'id' });
-                    }
-                };
-            });
-        }
     }
 
     initMouseEvents() {
@@ -679,8 +590,6 @@ class RadioManager {
             const page = document.createElement('div');
             page.id = `rpage${i}`;
             page.className = `rpage ${i === 1 ? 'active' : 'inactive'}`;
-            page.style.opacity = i === 1 ? '1' : '0';
-            page.style.transform = 'translateX(0)';
             
             const grid = document.createElement('div');
             grid.className = 'radio-grid';
@@ -705,6 +614,7 @@ class RadioManager {
         const button = document.createElement('div');
         button.className = 'radio-button';
         button.setAttribute('data-station-id', station.params.id);
+        let longPressTriggered = false;
         
         const icon = document.createElement('div');
         icon.className = 'radio-icon';
@@ -713,12 +623,68 @@ class RadioManager {
         const name = document.createElement('span');
         name.className = 'radio-name';
         name.textContent = station.name;
+
+        if (this.savedStationIds.has(String(station.params.id))) {
+            const deleteButton = document.createElement('button');
+            deleteButton.className = 'radio-delete-button';
+            deleteButton.type = 'button';
+            deleteButton.textContent = '\u00d7';
+            deleteButton.title = '删除此电台';
+            deleteButton.setAttribute('aria-label', `删除${station.name}`);
+            deleteButton.addEventListener('click', async (event) => {
+                event.stopPropagation();
+                deleteButton.disabled = true;
+                try {
+                    const deletedId = String(station.params.id);
+                    await deleteSavedRadioStation(deletedId);
+                    this.savedStationIds.delete(deletedId);
+                    this.radioStations = this.radioStations.filter(
+                        item => String(item.params.id) !== deletedId
+                    );
+                    saveOrder(this.radioStations.map(item => String(item.params.id)));
+                    this.totalPages = Math.ceil(this.radioStations.length / this.stationsPerPage);
+                    this.currentPage = Math.min(this.currentPage, Math.max(this.totalPages, 1));
+                    this.showAllPages = false;
+                    this.recreatePages();
+                } catch (error) {
+                    console.error('删除电台失败:', error);
+                    deleteButton.disabled = false;
+                }
+            });
+            button.appendChild(deleteButton);
+
+            button.addEventListener('contextmenu', (event) => {
+                event.preventDefault();
+                button.classList.add('show-delete-button');
+            });
+
+            let longPressTimer = null;
+            button.addEventListener('pointerdown', (event) => {
+                longPressTriggered = false;
+                if (event.pointerType !== 'touch') return;
+                longPressTimer = setTimeout(() => {
+                    button.classList.add('show-delete-button');
+                    longPressTriggered = true;
+                }, 550);
+            });
+            const clearLongPress = () => {
+                clearTimeout(longPressTimer);
+                longPressTimer = null;
+            };
+            button.addEventListener('pointerup', clearLongPress);
+            button.addEventListener('pointercancel', clearLongPress);
+        }
         
         button.appendChild(icon);
         button.appendChild(name);
         
         // 使用统一的播放函数
         button.onclick = () => {
+            if (this.ignoreNextRadioClick) {
+                this.ignoreNextRadioClick = false;
+                return;
+            }
+            if (longPressTriggered) return;
             setPlaybackInfo(
                 station.params.url,
                 station.params.title,
@@ -747,39 +713,87 @@ class RadioManager {
         line.style.display = 'flex';
         line.style.justifyContent = 'center';
         line.style.gap = '10px';
-
-        // 创建多个指示点（使用 data-page 存储页号，使用事件委托处理点击）
-        for (let i = 0; i < this.totalPages; i++) {
-            const dot = document.createElement('div');
-            dot.className = 'pagination-dot';
-            dot.textContent = i + 1;
-            dot.dataset.page = String(i + 1);
-            dot.style.cursor = 'pointer';
-            if (i === 0) dot.classList.add('active');
-            line.appendChild(dot);
-        }
+        line.setAttribute('aria-label', '页码；右键或长按显示全部页码');
 
         // 委托点击事件，避免在生成时意外触发多次绑定或闭包问题
         line.addEventListener('click', (e) => {
+            if (this.ignoreNextPaginationClick) {
+                this.ignoreNextPaginationClick = false;
+                return;
+            }
             const target = e.target.closest('.pagination-dot');
             if (!target) return;
             const page = parseInt(target.dataset.page, 10);
-            if (!isNaN(page)) this.changePage(page);
+            if (!isNaN(page)) {
+                this.showAllPages = false;
+                this.changePage(page);
+            }
         });
+
+        line.addEventListener('contextmenu', (e) => {
+            e.preventDefault();
+            this.showAllPages = true;
+            this.renderPaginationDots();
+        });
+
+        line.addEventListener('pointerdown', (e) => {
+            if (e.pointerType !== 'touch') return;
+            this.paginationLongPressTimer = setTimeout(() => {
+                this.showAllPages = true;
+                this.ignoreNextPaginationClick = true;
+                this.renderPaginationDots();
+            }, 550);
+        });
+
+        const clearLongPress = () => {
+            clearTimeout(this.paginationLongPressTimer);
+            this.paginationLongPressTimer = null;
+            setTimeout(() => {
+                this.ignoreNextPaginationClick = false;
+            }, 0);
+        };
+        line.addEventListener('pointerup', clearLongPress);
+        line.addEventListener('pointercancel', clearLongPress);
+
+        this.paginationLine = line;
 
         pagination.appendChild(line);
         container.appendChild(pagination);
+        this.renderPaginationDots();
+    }
+
+    renderPaginationDots() {
+        const line = this.paginationLine;
+        if (!line) return;
+
+        line.innerHTML = '';
+        const maxVisiblePages = 7;
+        const startPage = this.showAllPages || this.totalPages <= maxVisiblePages
+            ? 1
+            : Math.max(1, Math.min(
+                this.currentPage - Math.floor(maxVisiblePages / 2),
+                this.totalPages - maxVisiblePages + 1
+            ));
+        const endPage = this.showAllPages
+            ? this.totalPages
+            : Math.min(this.totalPages, startPage + maxVisiblePages - 1);
+
+        for (let pageNumber = startPage; pageNumber <= endPage; pageNumber++) {
+            const dot = document.createElement('button');
+            dot.type = 'button';
+            dot.className = 'pagination-dot';
+            dot.textContent = pageNumber;
+            dot.dataset.page = String(pageNumber);
+            dot.setAttribute('aria-label', `第 ${pageNumber} 页`);
+            dot.setAttribute('aria-current', pageNumber === this.currentPage ? 'page' : 'false');
+            if (pageNumber === this.currentPage) dot.classList.add('active');
+            line.appendChild(dot);
+        }
     }
 
     updatePaginationIndicator(currentPage) {
-        const dots = document.querySelectorAll('.pagination-dot');
-        dots.forEach((dot, index) => {
-            if (index + 1 === currentPage) {
-                dot.classList.add('active');
-            } else {
-                dot.classList.remove('active');
-            }
-        });
+        this.currentPage = currentPage;
+        this.renderPaginationDots();
     }
 
     initSortable() {
@@ -810,28 +824,52 @@ class RadioManager {
         const newPage = document.getElementById(`rpage${newPageNum}`);
         
         if (!newPage) return;
-        
-        // 添加淡入淡出动画
+
+        const currentPage = document.querySelector('.rpage.active');
+        if (currentPage === newPage) {
+            this.currentPage = newPageNum;
+            this.updatePaginationIndicator(this.currentPage);
+            localStorage.setItem('lastViewedPage', newPageNum);
+            return;
+        }
+
+        const transitionClasses = [
+            'page-enter-from-left',
+            'page-enter-from-right',
+            'page-exit-to-left',
+            'page-exit-to-right'
+        ];
+        const activePageNum = currentPage
+            ? Number.parseInt(currentPage.id.slice(5), 10)
+            : this.currentPage;
+        const movingForward = newPageNum > activePageNum;
+        const enterClass = movingForward ? 'page-enter-from-right' : 'page-enter-from-left';
+        const exitClass = movingForward ? 'page-exit-to-left' : 'page-exit-to-right';
+
         pages.forEach(page => {
-            if (page === newPage) {
-                // 新页面淡入
-                page.style.opacity = '0';
-                page.style.transform = 'translateX(0)';
-                page.classList.remove('inactive');
-                page.classList.add('active');
-                
-                // 使用 requestAnimationFrame 确保过渡效果生效
-                requestAnimationFrame(() => {
-                    page.style.opacity = '1';
-                });
-            } else {
-                // 其他页面淡出
-                page.style.opacity = '0';
-                page.style.transform = 'translateX(0)';
-                page.classList.remove('active');
+            if (page === newPage) return;
+
+            const wasActive = page.classList.contains('active');
+            page.classList.remove('active', ...transitionClasses);
+            if (!wasActive) {
                 page.classList.add('inactive');
+                return;
             }
+
+            page.classList.add(exitClass);
+            page.addEventListener('animationend', (event) => {
+                if (event.target !== page || page.classList.contains('active') ||
+                    !page.classList.contains(exitClass)) return;
+                page.classList.remove(exitClass);
+                page.classList.add('inactive');
+            }, { once: true });
         });
+
+        newPage.classList.remove('inactive', ...transitionClasses);
+        newPage.classList.add('active', enterClass);
+        newPage.addEventListener('animationend', (event) => {
+            if (event.target === newPage) newPage.classList.remove(enterClass);
+        }, { once: true });
         
         this.currentPage = newPageNum;
         this.updatePaginationIndicator(this.currentPage);
@@ -849,13 +887,24 @@ class RadioManager {
 
     recreatePages() {
         this.totalPages = Math.ceil(this.radioStations.length / this.stationsPerPage);
+        this.currentPage = Math.min(Math.max(this.currentPage, 1), Math.max(this.totalPages, 1));
         this.createPages();
         this.createPaginationIndicator();
-        this.updatePaginationIndicator(this.currentPage);
+        if (this.totalPages > 0) {
+            this.changePage(this.currentPage);
+        }
     }
 }
 
 // 初始化
-document.addEventListener('DOMContentLoaded', () => {
-    new RadioManager();
-});
+function initializeRadioManager() {
+    if (document.getElementById('radio-container')) {
+        new RadioManager();
+    }
+}
+
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initializeRadioManager, { once: true });
+} else {
+    initializeRadioManager();
+}

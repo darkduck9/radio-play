@@ -12,6 +12,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.6/Sortable.min.js" crossorigin="anonymous"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/hls.js/1.6.9/hls.min.js" crossorigin="anonymous"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/1.7.0/axios.min.js" crossorigin="anonymous"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/workbox-sw/7.0.0/workbox-sw.min.js" crossorigin="anonymous"></script>
@@ -78,8 +79,11 @@ stroke-width: 2px;}</style></defs><rect class="cls-1" x="1" y="1" width="24" hei
                     <img src="./icons/shazam.svg" style="width:20px" alt="shazam Logo">
                 </a>
             </button>
-        </div>
+        <button id="openIheartButton" class="iheart-open-button" type="button" aria-label="打开 iHeart 电台" title="iHeart 电台">
+          <img src="./icons/uha.png" width="26" height="26" alt="">
+        </button> </div>
     </div>
+       
 </div>
 
 <div id="radio-container">
@@ -290,7 +294,64 @@ stroke-width: 2px;}</style></defs><rect class="cls-1" x="1" y="1" width="24" hei
 </article> </div>
         </div>
        </div>
-</div><script src="script.js"></script> 
+</div>
+<div id="iheartFramePanel" class="iheart-frame-panel" hidden>
+  <iframe id="iheartFrame" title="iHeart 电台搜索" src="about:blank"></iframe>
+</div>
+<script src="script.js"></script>
+<script>
+const iheartFramePanel = document.getElementById('iheartFramePanel');
+const iheartFrame = document.getElementById('iheartFrame');
+let iheartCloseTimer = null;
+
+document.getElementById('openIheartButton').addEventListener('click', () => {
+  window.clearTimeout(iheartCloseTimer);
+  iheartFrame.src = './iheartS.html';
+  iheartFramePanel.hidden = false;
+  requestAnimationFrame(() => iheartFramePanel.classList.add('is-open'));
+});
+
+function closeIheartFrame() {
+  iheartFramePanel.classList.remove('is-open');
+  window.clearTimeout(iheartCloseTimer);
+  iheartCloseTimer = window.setTimeout(() => {
+    if (!iheartFramePanel.classList.contains('is-open')) {
+      iheartFramePanel.hidden = true;
+    }
+  }, 280);
+}
+
+iheartFramePanel.addEventListener('transitionend', (event) => {
+  if (event.target === iheartFramePanel && event.propertyName === 'opacity' &&
+      !iheartFramePanel.classList.contains('is-open')) {
+    window.clearTimeout(iheartCloseTimer);
+    iheartFramePanel.hidden = true;
+  }
+});
+
+window.addEventListener('message', (event) => {
+  if (
+    event.origin !== window.location.origin ||
+    event.source !== iheartFrame.contentWindow
+  ) {
+    return;
+  }
+
+  if (event.data?.type === 'close-iheart-search') {
+    closeIheartFrame();
+  } else if (event.data?.type === 'radio-station-saved' && event.data.id) {
+    window.dispatchEvent(new CustomEvent('radio-station-saved', {
+      detail: { id: event.data.id }
+    }));
+  }
+});
+
+document.addEventListener('keydown', (event) => {
+  if (event.key === 'Escape' && !iheartFramePanel.hidden) {
+    closeIheartFrame();
+  }
+});
+</script>
 <script type="module" src="radioManager.js"></script>
 </body>
 </html>
