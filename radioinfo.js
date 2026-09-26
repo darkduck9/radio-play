@@ -232,15 +232,40 @@ const defaultRadioStations = [
    
 ];
 
-function getRadio() {
+function getRadio(additionalStations = []) {
+    const stations = [...defaultRadioStations];
+    additionalStations.forEach(station => {
+        const stationId = station.params?.id ?? station.id;
+        if (!stationId || stations.some(item => String(item.params.id) === String(stationId))) {
+            return;
+        }
+        stations.push({
+            ...station,
+            params: {
+                ...station.params,
+                id: String(stationId),
+                mark: station.params?.mark ?? 1
+            }
+        });
+    });
+
     const savedOrder = getSavedOrder();
-    if (savedOrder) {
-        // 根据保存的顺序重新排列电台
-        return savedOrder.map(id => 
-            defaultRadioStations.find(station => station.params.id === id)
-        ).filter(Boolean);
+    if (!savedOrder) {
+        return stations;
     }
-    return defaultRadioStations;
+
+    const stationsById = new Map(
+        stations.map(station => [String(station.params.id), station])
+    );
+    const orderedStations = savedOrder
+        .map(id => stationsById.get(String(id)))
+        .filter(Boolean);
+    const orderedIds = new Set(orderedStations.map(station => String(station.params.id)));
+
+    return [
+        ...orderedStations,
+        ...stations.filter(station => !orderedIds.has(String(station.params.id)))
+    ];
 }
 
 // 导出函数和数据
