@@ -169,10 +169,9 @@
 
         <div class="lyrics-scroll" id="lyricsScroll">
             <div class="status" id="status">歌词加载中...</div>
-        </div>
-
-        <div class="footer" id="footer" style="display:none;">
-            <div class="copyright" id="copyright"></div>
+            <div class="footer" id="footer" style="display:none;">
+                <div class="copyright" id="copyright"></div>
+            </div>
         </div>
     </div>
 
@@ -254,6 +253,7 @@
             const copyrightEl = document.getElementById('copyright');
             copyrightEl.innerHTML = escapeHtml(data.lyricsCopyright)
                 .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener">$1</a>');
+            scrollEl.appendChild(footer);
             footer.style.display = 'block';
         }
 
