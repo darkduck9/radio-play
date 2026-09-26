@@ -703,16 +703,24 @@ function openLyricsModal(tpid, songtext, cover) {
     modal.appendChild(iframe);
     overlay.appendChild(modal);
     document.body.appendChild(overlay);
+	requestAnimationFrame(() => overlay.classList.add('is-open'));
 
     function closeModal() {
         if (isClosing) return; 
         isClosing = true;
 
-        iframe.src = 'about:blank';
-
-        requestAnimationFrame(() => {
+		overlay.classList.remove('is-open');
+		const removeOverlay = () => {
+			if (overlay.classList.contains('is-open')) return;
+			iframe.src = 'about:blank';
             overlay.remove();
-        });
+		};
+		overlay.addEventListener('transitionend', (event) => {
+			if (event.target === overlay && event.propertyName === 'opacity') {
+				removeOverlay();
+			}
+		}, { once: true });
+		window.setTimeout(removeOverlay, 280);
 
         document.removeEventListener('keydown', onKeydown);
     }
